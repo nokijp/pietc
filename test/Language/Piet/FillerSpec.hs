@@ -15,6 +15,7 @@ import qualified Data.Vector.Generic as V
 import Language.Piet.Filler
 import Test.Hspec
 import Text.InterpolatedString.Perl6
+import TestUtils
 
 main :: IO ()
 main = hspec spec
@@ -23,10 +24,10 @@ spec :: Spec
 spec = do
   describe "fillAll" $ do
     forM_
-      [ ("empty image", V.empty, V.empty, [])
-      , ("small image", smallImage, expectedFilledSmallImage, expectedSmallCoords)
-      , ("complex image", complexImage, expectedFilledComplexImage, expectedComplexCoords)
-      , ("irregular image", irregularImage, expectedFilledIrregularImage, expectedIrregularCoords)
+      [ ("when given an empty image", V.empty, V.empty, [])
+      , ("when given a small image", smallImage, expectedFilledSmallImage, expectedSmallCoords)
+      , ("when given a complex image", complexImage, expectedFilledComplexImage, expectedComplexCoords)
+      , ("when given an irregular image", irregularImage, expectedFilledIrregularImage, expectedIrregularCoords)
       ] $ \(name, image, expectedFilledImage, expectedCoords) ->
         context name $ do
           let (filledImage, coords) = fillAll image
@@ -120,6 +121,3 @@ expectedIrregularCoords = [ (0, S.fromList [(0, 0)])
                           , (3, S.fromList [(0, 1), (1, 1), (0, 2), (0, 3), (1, 3), (2, 3)])
                           , (4, S.fromList [(3, 3), (4, 3), (5, 3), (6, 3)])
                           ]
-
-toVector2D :: [[a]] -> Vector (Vector a)
-toVector2D = V.fromList . fmap V.fromList
