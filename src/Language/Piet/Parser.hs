@@ -54,15 +54,20 @@ parse (codelTable, blockTable) = parse' where
     mapM_ parseState unvisitedBlockIndices
 
 nextBlock :: Vector (Vector (Codel, Int)) -> DirectionPointer -> (Int, Int) -> Int -> Maybe (Command, Int)
-nextBlock codelTable dp (x, y) blockSize = searchNext 0 (x, y) where
-  (currentCodel, _) = codelTable V.! y V.! x
-  searchNext :: Int -> (Int, Int) -> Maybe (Command, Int)
-  searchNext n position = do
+nextBlock codelTable dp (x, y) blockSize = nextBlock' where
+  nextBlock' :: Maybe (Command, Int)
+  nextBlock' = do
+    (AchromaticCodel currentHue currentLightness, _) <- codelTable V.!? y >>= (V.!? x)
+    searchNext 0 (currentHue, currentLightness) (x, y)
+
+  searchNext :: Int -> (Hue, Lightness) -> (Int, Int) -> Maybe (Command, Int)
+  searchNext step currentHueAndLightness position = do
     let (nextX, nextY) = move dp position
     (nextCodel, blockIndex) <- codelTable V.!? nextY >>= (V.!? nextX)
     case nextCodel of
-      AchromaticCodel _ _ -> Just (if n == 0 then command currentCodel nextCodel blockSize else NoOperation, blockIndex)
-      WhiteCodel -> searchNext (n + 1) (nextX, nextY)
+      AchromaticCodel nextHue nextLightness ->
+        Just (if step == 0 then command currentHueAndLightness (nextHue, nextLightness) blockSize else NoOperation, blockIndex)
+      WhiteCodel -> searchNext (step + 1) currentHueAndLightness (nextX, nextY)
       BlackCodel -> Nothing
 
 move :: DirectionPointer -> (Int, Int) -> (Int, Int)
@@ -71,12 +76,11 @@ move DPDown  = second succ
 move DPLeft  = first  pred
 move DPUp    = second pred
 
-command :: Codel -> Codel -> Int -> Command
-command (AchromaticCodel currentHue currentLightness) (AchromaticCodel nextHue nextLightness) = cmd where
+command :: (Hue, Lightness) -> (Hue, Lightness) -> Int -> Command
+command (currentHue, currentLightness) (nextHue, nextLightness) = cmd where
   cmd = commandConstructors V.! (hueDiff * 3 + lightnessDiff)
   hueDiff = (fromEnum nextHue - fromEnum currentHue) `mod` 6
   lightnessDiff = (fromEnum nextLightness - fromEnum currentLightness) `mod` 3
-command _ _ = error "impossible to reach here"
 
 {-# ANN minMaxCoords "HLint: ignore Redundant id" #-}
 {-# ANN minMaxCoords "HLint: ignore Use first" #-}
