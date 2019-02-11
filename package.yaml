@@ -3,9 +3,13 @@ version:             0.1.0.0
 
 dependencies:
 - base >= 4.7 && < 5
+- bytestring
 - containers
+- file-embed
 - lens
 - list-t
+- llvm-hs
+- llvm-hs-pure
 - mtl
 - primitive
 - transformers
@@ -34,13 +38,13 @@ tests:
   pietc-test:
     main:                Spec.hs
     source-dirs:         test
+    c-sources:
+    - test/llvmtestutils.c
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     - -Wall
     - -Werror
     dependencies:
     - pietc
     - hspec
+    - directory
     - interpolatedstring-perl6
