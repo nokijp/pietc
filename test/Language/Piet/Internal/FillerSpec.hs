@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Language.Piet.FillerSpec
+module Language.Piet.Internal.FillerSpec
   ( main
   , spec
   ) where
@@ -12,7 +12,7 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Vector (Vector)
 import qualified Data.Vector.Generic as V
-import Language.Piet.Filler
+import Language.Piet.Internal.Filler
 import Test.Hspec
 import Text.InterpolatedString.Perl6
 import TestUtils

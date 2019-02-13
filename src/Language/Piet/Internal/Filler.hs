@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Language.Piet.Filler
+module Language.Piet.Internal.Filler
   ( fillAll
   ) where
 
