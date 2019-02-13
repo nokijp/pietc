@@ -67,13 +67,13 @@ define void @greater() {
   ret void
 }
 
-define void @pointer() {
-  ; FIXME
+define void @pointer(i32* %ref) {
+  call void @pop_fp_arg(i32 (i32, i32)* @pointer_pop_op, i32* %ref)
   ret void
 }
 
-define void @switch() {
-  ; FIXME
+define void @switch(i32* %ref) {
+  call void @pop_fp_arg(i32 (i32, i32)* @switch_pop_op, i32* %ref)
   ret void
 }
 
@@ -184,6 +184,32 @@ error:
   ret void
 }
 
+define private void @pop_fp_arg(i32 (i32, i32)* %op, i32* %ref) {
+  %stack = load %Stack*, %Stack** @stack
+
+  %stack_empty = call i1 @is_empty(%Stack* %stack)
+  br i1 %stack_empty, label %error, label %pop
+
+pop:
+  %val_ptr = getelementptr inbounds %Stack, %Stack* %stack, i32 0, i32 0
+  %val = load i32, i32* %val_ptr
+  %next_ptr = getelementptr inbounds %Stack, %Stack* %stack, i32 0, i32 1
+  %next = load %Stack*, %Stack** %next_ptr
+
+  %stack_i8 = bitcast %Stack* %stack to i8*
+  call void @free(i8* %stack_i8)
+  store %Stack* %next, %Stack** @stack
+
+  %arg = load i32, i32* %ref
+  %res = call i32 %op(i32 %val, i32 %arg)
+  store i32 %res, i32* %ref
+
+  ret void
+
+error:
+  ret void
+}
+
 define private void @pop2_fp(void (i32, i32)* %op) {
   %stack = load %Stack*, %Stack** @stack
 
@@ -284,6 +310,25 @@ define private void @greater_pop2_op(i32 %a, i32 %b) {
   %val = zext i1 %is_gt to i32
   call void @push(i32 %val)
   ret void
+}
+
+define private i32 @pointer_pop_op(i32 %num, i32 %p) {
+  %cc = and i32 %p, 1
+  %dp = ashr i32 %p, 1
+
+  %new_dp_i = add i32 %dp, %num
+  %new_dp = and i32 %new_dp_i, 3
+
+  %new_p_cc0 = shl i32 %new_dp, 1
+  %new_p = or i32 %new_p_cc0, %cc
+
+  ret i32 %new_p
+}
+
+define private i32 @switch_pop_op(i32 %num, i32 %p) {
+  %is_odd = and i32 %num, 1
+  %new_p = xor i32 %p, %is_odd
+  ret i32 %new_p
 }
 
 define private void @duplicate_pop_op(i32 %n) {

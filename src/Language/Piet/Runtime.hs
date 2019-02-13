@@ -48,8 +48,6 @@ declareFunctions = do
                        , "mod"
                        , "not"
                        , "greater"
-                       , "pointer"
-                       , "switch"
                        , "duplicate"
                        , "roll"
                        , "in_number"
@@ -58,6 +56,8 @@ declareFunctions = do
                        , "out_char"
                        ]
   declareFunction "push" T.void [T.i32]
+  declareFunction "pointer" T.void [T.ptr T.i32]
+  declareFunction "switch" T.void [T.ptr T.i32]
   mapM_ (\name -> declareFunction name T.void []) noArgsCommands
   declareFunction "reset_stack" T.void []
 
@@ -91,11 +91,11 @@ not = callNoArgsVoidFunction "not"
 greater :: MonadIRBuilder m => m ()
 greater = callNoArgsVoidFunction "greater"
 
-pointer :: MonadIRBuilder m => m ()
-pointer = callNoArgsVoidFunction "pointer"
+pointer :: MonadIRBuilder m => AST.Operand -> m ()
+pointer p = callVoidFunction "pointer" [T.ptr T.i32] [p]
 
-switch :: MonadIRBuilder m => m ()
-switch = callNoArgsVoidFunction "switch"
+switch :: MonadIRBuilder m => AST.Operand -> m ()
+switch p = callVoidFunction "switch" [T.ptr T.i32] [p]
 
 duplicate :: MonadIRBuilder m => m ()
 duplicate = callNoArgsVoidFunction "duplicate"
