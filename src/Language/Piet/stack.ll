@@ -313,15 +313,9 @@ define private void @greater_pop2_op(i32 %a, i32 %b) {
 }
 
 define private i32 @pointer_pop_op(i32 %num, i32 %p) {
-  %cc = and i32 %p, 1
-  %dp = ashr i32 %p, 1
-
-  %new_dp_i = add i32 %dp, %num
-  %new_dp = and i32 %new_dp_i, 3
-
-  %new_p_cc0 = shl i32 %new_dp, 1
-  %new_p = or i32 %new_p_cc0, %cc
-
+  %num2 = shl i32 %num, 1
+  %new_p_i = add i32 %p, %num2
+  %new_p = and i32 %new_p_i, 7
   ret i32 %new_p
 }
 
