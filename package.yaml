@@ -48,3 +48,5 @@ tests:
     - hspec
     - directory
     - interpolatedstring-perl6
+    - llvm-hs-pretty
+    - text

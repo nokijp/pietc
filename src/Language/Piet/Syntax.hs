@@ -12,8 +12,9 @@ import Data.Map (Map)
 import Data.Vector (Vector)
 import qualified Data.Vector.Generic as V
 
-data DirectionPointer = DPRight | DPDown | DPLeft | DPUp deriving (Show, Eq, Ord, Enum)
-data CodelChooser = CCLeft | CCRight deriving (Show, Eq, Ord, Enum)
+data DirectionPointer = DPRight | DPDown | DPLeft | DPUp deriving (Show, Eq, Ord, Enum, Bounded)
+data CodelChooser = CCLeft | CCRight deriving (Show, Eq, Ord, Enum, Bounded)
+
 data Command = NoOperation
              | Push Int
              | Pop
