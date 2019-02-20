@@ -27,7 +27,7 @@ spec = do
       , ("smallestGraph", smallestGraph, smallestIR)
       , ("complexGraph", complexGraph, complexIR)
       ] $ \(name, inputGraph, expected) ->
-        context ("when given " ++ show name) $ do
+        context ("when given " ++ name) $ do
           let ast = generateAssembly inputGraph
           it "generates a correct LLVM AST" $ normalize (ppllvm ast) `shouldBe` normalize expected
 

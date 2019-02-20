@@ -6,6 +6,7 @@ dependencies:
 - bytestring
 - containers
 - file-embed
+- JuicyPixels
 - lens
 - list-t
 - llvm-hs
