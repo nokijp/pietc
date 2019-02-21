@@ -5,7 +5,7 @@ module Language.Piet.Internal.ToRGB8Spec
 
 import Codec.Picture
 import Control.Monad
-import Data.Maybe
+import Data.Either
 import Language.Piet.Internal.ToRGB8
 import Test.Hspec
 
@@ -23,7 +23,7 @@ spec = do
       , ("ImageYA1", ImageYA16 $ singlePixelImage $ PixelYA16 0x7FFF 0xFFFF)
       ] $ \(name, image) ->
         context ("when given " ++ name) $ do
-          it "fails" $ maybe True (const False) (toRGB8ImageM image) `shouldBe` True
+          it "fails" $ isLeft (toRGB8ImageM image) `shouldBe` True
     forM_
       [ ("ImageRGB8", ImageRGB8 $ singlePixelImage $ PixelRGB8 0x00 0x7F 0xFF)
       , ("ImageRGB16", ImageRGB16 $ singlePixelImage $ PixelRGB16 0x0000 0x7FFF 0xFFFF)
@@ -37,9 +37,8 @@ spec = do
         context ("when given " ++ name) $ do
           let expectedImage127 = imageData $ singlePixelImage $ PixelRGB8 0x00 0x7F 0xFF
           let expectedImage128 = imageData $ singlePixelImage $ PixelRGB8 0x00 0x80 0xFF
-          let actualImage = imageData $ fromJust $ toRGB8ImageM image
+          let actualImage = imageData $ fromRight undefined $ toRGB8ImageM image
           it "returns a RGB8 image" $ actualImage == expectedImage127 || actualImage == expectedImage128 `shouldBe` True
-
 
 singlePixelImage :: Pixel a => a -> Image a
 singlePixelImage pixel = generateImage (\_ _ -> pixel) 1 1

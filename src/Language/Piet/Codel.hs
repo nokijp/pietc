@@ -5,7 +5,7 @@ module Language.Piet.Codel
   , isAchromaticCodel
   ) where
 
-data Codel = AchromaticCodel Hue Lightness | WhiteCodel | BlackCodel deriving (Show, Eq)
+data Codel = AchromaticCodel Hue Lightness | WhiteCodel | BlackCodel deriving (Show, Eq, Ord)
 data Hue = Red | Yellow | Green | Cyan | Blue | Magenta deriving (Show, Eq, Ord, Enum)
 data Lightness = Light | Normal | Dark deriving (Show, Eq, Ord, Enum)
 

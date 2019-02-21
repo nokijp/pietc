@@ -28,7 +28,7 @@ data ParserError = EmptyBlockTableError
                  | IllegalCoordinateError Int Int
                    deriving (Show, Eq)
 
-parse :: (Vector (Vector (Codel, Int)), IntMap [(Int, Int)]) -> Either ParserError SyntaxGraph
+parse :: MonadError ParserError m => (Vector (Vector (Codel, Int)), IntMap [(Int, Int)]) -> m SyntaxGraph
 parse (codelTable, blockTable) = parse' where
   parse' :: MonadError ParserError m => m SyntaxGraph
   parse' = do

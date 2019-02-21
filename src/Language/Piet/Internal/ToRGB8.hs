@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Language.Piet.Internal.ToRGB8
   ( ToRGB8(..)
   , toRGB8ImageM
@@ -5,11 +7,11 @@ module Language.Piet.Internal.ToRGB8
 
 import Codec.Picture
 import Codec.Picture.Types
-import Control.Monad.Fail
+import Control.Monad.Except
 import Data.Bits
 import Prelude hiding (fail)
 
-toRGB8ImageM :: MonadFail m => DynamicImage -> m (Image PixelRGB8)
+toRGB8ImageM :: MonadError String m => DynamicImage -> m (Image PixelRGB8)
 toRGB8ImageM (ImageY8     _)     = failConversion
 toRGB8ImageM (ImageY16    _)     = failConversion
 toRGB8ImageM (ImageYF     _)     = failConversion
@@ -24,8 +26,8 @@ toRGB8ImageM (ImageYCbCr8 image) = return $ toRGB8Image image
 toRGB8ImageM (ImageCMYK8  image) = return $ toRGB8Image image
 toRGB8ImageM (ImageCMYK16 image) = return $ toRGB8Image image
 
-failConversion :: MonadFail m => m a
-failConversion = fail "can't convert from grayscale images"
+failConversion :: MonadError String m => m a
+failConversion = throwError "can't convert from grayscale images"
 
 class Pixel a => ToRGB8 a where
   toRGB8Pixel :: a -> PixelRGB8
