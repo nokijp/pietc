@@ -106,7 +106,7 @@ showDPCC (dp, cc) = [charDP dp, charCC cc] where
   charDP DPRight = 'r'
   charDP DPDown  = 'd'
   charDP DPLeft  = 'l'
-  charDP DPUp    = 'r'
+  charDP DPUp    = 'u'
   charCC CCLeft  = 'l'
   charCC CCRight = 'r'
 
