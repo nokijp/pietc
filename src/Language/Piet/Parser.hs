@@ -4,6 +4,7 @@
 module Language.Piet.Parser
   ( ParserError(..)
   , parse
+  , parseFilledImage
   ) where
 
 import Control.Arrow
@@ -20,6 +21,7 @@ import Data.Tuple
 import Data.Vector (Vector)
 import qualified Data.Vector.Generic as V
 import Language.Piet.Codel
+import Language.Piet.Internal.Filler
 import Language.Piet.Syntax
 
 data ParserError = EmptyBlockTableError
@@ -28,8 +30,11 @@ data ParserError = EmptyBlockTableError
                  | IllegalCoordinateError Int Int
                    deriving (Show, Eq)
 
-parse :: MonadError ParserError m => (Vector (Vector (Codel, Int)), IntMap [(Int, Int)]) -> m SyntaxGraph
-parse (codelTable, blockTable) = parse' where
+parse :: MonadError ParserError m => Vector (Vector Codel) -> m SyntaxGraph
+parse image = let (indices, positionTable) = fillAll image in parseFilledImage (V.zipWith V.zip image indices, positionTable)
+
+parseFilledImage :: MonadError ParserError m => (Vector (Vector (Codel, Int)), IntMap [(Int, Int)]) -> m SyntaxGraph
+parseFilledImage (codelTable, blockTable) = parse' where
   parse' :: MonadError ParserError m => m SyntaxGraph
   parse' = do
     when (IM.null blockTable) $ throwError EmptyBlockTableError

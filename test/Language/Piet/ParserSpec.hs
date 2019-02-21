@@ -21,12 +21,15 @@ main = hspec spec
 spec :: Spec
 spec = do
   describe "parse" $ do
+    it "returns a syntax graph when given an image" $ parse rawComplexImage `shouldBe` Right expectedComplexGraph
+
+  describe "parseFilledImage" $ do
     forM_
       [ ("when given a small image", smallImage, smallBlockTable, expectedSmallGraph)
       , ("when given a complex image", complexImage, complexBlockTable, expectedComplexGraph)
       ] $ \(name, image, blockTable, expectedGraph) ->
         context name $ do
-          it "returns a syntax graph" $ parse (image, blockTable) `shouldBe` Right expectedGraph
+          it "returns a syntax graph" $ parseFilledImage (image, blockTable) `shouldBe` Right expectedGraph
 
     forM_
       [ ("when given an empty image", V.empty, IM.empty, EmptyBlockTableError)
@@ -34,7 +37,7 @@ spec = do
       , ("when given a black image", blackImage, blackBlockTable, IllegalInitialColorError BlackCodel)
       ] $ \(name, image, blockTable, expectedError) ->
         context name $ do
-          it "returns an error" $ parse (image, blockTable) `shouldBe` Left expectedError
+          it "returns an error" $ parseFilledImage (image, blockTable) `shouldBe` Left expectedError
 
     context "when given an image which only consists of two pixels" $ do
       forM_
@@ -86,7 +89,7 @@ spec = do
                                                                                ]
                                                           )
                                                         ]
-          it ("returns " ++ show (command12, command21) ++ " when given " ++ show (color1, color2)) $ parse (image, blockTable) `shouldBe` Right expectedGraph
+          it ("returns " ++ show (command12, command21) ++ " when given " ++ show (color1, color2)) $ parseFilledImage (image, blockTable) `shouldBe` Right expectedGraph
 
 smallImage :: Vector (Vector (Codel, Int))
 smallImage = toVector2D [[(AchromaticCodel Red Normal, 0)]]
@@ -108,6 +111,145 @@ blackImage = toVector2D [[(BlackCodel, 0)]]
 
 blackBlockTable :: IntMap [(Int, Int)]
 blackBlockTable = IM.fromList [(0, [(0, 0)])]
+
+rawComplexImage :: Vector (Vector Codel)
+rawComplexImage = toVector2D [ [ AchromaticCodel Blue Dark
+                               , AchromaticCodel Blue Dark
+                               , AchromaticCodel Blue Dark
+                               , AchromaticCodel Blue Dark
+                               , AchromaticCodel Blue Dark
+                               , AchromaticCodel Blue Normal
+                               , AchromaticCodel Red Light
+                               , AchromaticCodel Red Light
+                               , AchromaticCodel Red Light
+                               , WhiteCodel
+                               , AchromaticCodel Red Light
+                               , AchromaticCodel Red Light
+                               , AchromaticCodel Red Light
+                               , AchromaticCodel Magenta Dark
+                               , AchromaticCodel Magenta Dark
+                               , AchromaticCodel Magenta Dark
+                               ]
+                             , [ AchromaticCodel Blue Light
+                               , AchromaticCodel Blue Light
+                               , AchromaticCodel Blue Light
+                               , AchromaticCodel Blue Normal
+                               , AchromaticCodel Blue Normal
+                               , AchromaticCodel Blue Normal
+                               , AchromaticCodel Blue Normal
+                               , AchromaticCodel Blue Normal
+                               , WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , AchromaticCodel Yellow Normal
+                               , AchromaticCodel Yellow Normal
+                               , AchromaticCodel Yellow Normal
+                               , BlackCodel
+                               ]
+                             , [ AchromaticCodel Blue Light
+                               , AchromaticCodel Blue Light
+                               , AchromaticCodel Blue Light
+                               , AchromaticCodel Blue Light
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Blue Normal
+                               , AchromaticCodel Blue Normal
+                               , AchromaticCodel Red Normal
+                               , WhiteCodel
+                               , WhiteCodel
+                               , AchromaticCodel Yellow Normal
+                               , AchromaticCodel Yellow Normal
+                               , AchromaticCodel Yellow Normal
+                               , BlackCodel
+                               , BlackCodel
+                               , AchromaticCodel Magenta Light
+                               ]
+                             , [ AchromaticCodel Cyan Light
+                               , AchromaticCodel Cyan Light
+                               , AchromaticCodel Cyan Light
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Red Normal
+                               , BlackCodel
+                               , BlackCodel
+                               , BlackCodel
+                               , BlackCodel
+                               , BlackCodel
+                               , AchromaticCodel Magenta Light
+                               , AchromaticCodel Magenta Light
+                               ]
+                             , [ WhiteCodel
+                               , WhiteCodel
+                               , AchromaticCodel Cyan Light
+                               , AchromaticCodel Cyan Light
+                               , AchromaticCodel Cyan Light
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Red Normal
+                               , BlackCodel
+                               , AchromaticCodel Magenta Light
+                               , AchromaticCodel Magenta Light
+                               , BlackCodel
+                               ]
+                             , [ WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , AchromaticCodel Cyan Light
+                               , AchromaticCodel Cyan Light
+                               , AchromaticCodel Cyan Light
+                               , AchromaticCodel Cyan Light
+                               , AchromaticCodel Cyan Light
+                               , AchromaticCodel Red Normal
+                               , AchromaticCodel Green Light
+                               , BlackCodel
+                               , BlackCodel
+                               , AchromaticCodel Magenta Light
+                               , AchromaticCodel Magenta Light
+                               , AchromaticCodel Magenta Light
+                               , BlackCodel
+                               ]
+                             , [ WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , AchromaticCodel Red Dark
+                               , AchromaticCodel Red Light
+                               , AchromaticCodel Red Light
+                               , AchromaticCodel Red Light
+                               , BlackCodel
+                               , AchromaticCodel Green Dark
+                               , AchromaticCodel Green Dark
+                               , AchromaticCodel Red Light
+                               ]
+                             , [ WhiteCodel
+                               , AchromaticCodel Yellow Light
+                               , WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , AchromaticCodel Cyan Dark
+                               , AchromaticCodel Cyan Dark
+                               , WhiteCodel
+                               , AchromaticCodel Green Light
+                               , AchromaticCodel Green Light
+                               , AchromaticCodel Green Light
+                               , WhiteCodel
+                               , WhiteCodel
+                               , WhiteCodel
+                               , BlackCodel
+                               ]
+                             ]
 
 complexImage :: Vector (Vector (Codel, Int))
 complexImage = toVector2D [ [ (AchromaticCodel Blue Dark, 0)
