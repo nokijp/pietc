@@ -5,7 +5,6 @@ module Language.Piet.ImageReaderSpec
 
 import Control.Monad
 import Control.Monad.Except
-import Data.Either
 import Data.Vector (Vector)
 import Language.Piet.Codel
 import Language.Piet.ImageReader
@@ -58,13 +57,13 @@ spec = do
         )
       ] $ \(config, expectedCodels) ->
         context ("when configured with " ++ show config) $ do
-          codels <- runIO $ runExceptT $ readCodels config "test/resources/imagereader-test.png"
-          it "returns codels" $ fromRight undefined codels `shouldBe` expectedCodels
+          Right codels <- runIO $ runExceptT $ readCodels config "test/resources/imagereader-test.png"
+          it "returns codels" $ codels `shouldBe` expectedCodels
 
     context "when given an invalid codel size" $ do
       let config = defaultImageConfig { codelSize = 4 }
-      codels <- runIO $ runExceptT $ readCodels config "test/resources/imagereader-test.png"
-      it "fails with CodelSizeError" $ fromLeft undefined codels `shouldBe` CodelSizeError
+      Left err <- runIO $ runExceptT $ readCodels config "test/resources/imagereader-test.png"
+      it "fails with CodelSizeError" $ err `shouldBe` CodelSizeError
 
 blackWhiteCodels :: Vector (Vector Codel)
 blackWhiteCodels = toVector2D [ [AchromaticCodel Red Light, AchromaticCodel Yellow Light, AchromaticCodel Green Light, AchromaticCodel Cyan Light, AchromaticCodel Blue Light, AchromaticCodel Magenta Light]

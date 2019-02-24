@@ -5,6 +5,7 @@ dependencies:
 - base >= 4.7 && < 5
 - bytestring
 - containers
+- directory
 - file-embed
 - JuicyPixels
 - lens
@@ -13,6 +14,7 @@ dependencies:
 - llvm-hs-pure
 - mtl
 - primitive
+- process
 - transformers
 - vector
 
@@ -47,7 +49,6 @@ tests:
     dependencies:
     - pietc
     - hspec
-    - directory
     - interpolatedstring-perl6
     - llvm-hs-pretty
     - text

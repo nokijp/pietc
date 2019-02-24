@@ -4,7 +4,7 @@ module LLVMTestUtils
   ( runAndCapture
   ) where
 
-import Control.Exception hiding (handle)
+import Control.Exception
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.ByteString.Short (ShortByteString)
@@ -22,8 +22,7 @@ import LLVM.OrcJIT
 import LLVM.OrcJIT.CompileLayer
 import qualified LLVM.Relocation as Reloc
 import LLVM.Target
-import System.Directory
-import System.IO
+import TestUtils
 
 foreign import ccall "replace_stdin" replaceStdin :: CString -> IO (Ptr CFile)
 foreign import ccall "replace_stdout" replaceStdout :: CString -> IO (Ptr CFile)
@@ -34,8 +33,8 @@ foreign import ccall "dynamic" mkIntFunction :: FunPtr (Int -> IO Int) -> Int ->
 
 runAndCapture :: AST.Module -> ShortByteString -> (Int, ByteString) -> IO (Int, ByteString)
 runAndCapture ast symbol (arg, input) = do
-  withTempFile $ \inputFilePath ->
-    withTempFile $ \outputFilePath -> do
+  withTempFile "pietc-llvm-input" $ \inputFilePath ->
+    withTempFile "pietc-llvm-input" $ \outputFilePath -> do
       BS.writeFile inputFilePath input
       res <- withCString inputFilePath $ \inputFilePathCStr ->
         withCString outputFilePath $ \outputFilePathCStr ->
@@ -44,15 +43,6 @@ runAndCapture ast symbol (arg, input) = do
               runModule mkIntFunction ast symbol arg
       s <- BS.readFile outputFilePath
       return (res, s)
-
-withTempFile :: (FilePath -> IO a) -> IO a
-withTempFile = bracket createTempFile removeTempFile where
-  createTempFile = do
-    tempDir <- getTemporaryDirectory
-    (path, handle) <- openTempFile tempDir "pietc-llvm"
-    hClose handle
-    return path
-  removeTempFile = removeFile
 
 runModule :: (FunPtr (a -> IO b) -> a -> IO b) -> AST.Module -> ShortByteString -> a -> IO b
 runModule mkFunction ast symbol x = do
