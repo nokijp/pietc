@@ -43,7 +43,7 @@ generateObject ast = captureException (\e -> CompileError $ show (e :: SomeExcep
             moduleObject targetMachine linkedModule
 
 link :: (MonadIO m, MonadError ObjectGeneratorError m) => FilePath -> ByteString -> m ()
-link outPath objectString = toM $ catchTempFileError $ try $ linkIO where
+link outPath objectString = toM $ catchTempFileError $ try linkIO where
   toM :: (MonadIO m, MonadError e m) => IO (Either e a) -> m a
   toM x = liftIO x >>= either throwError return
   catchTempFileError :: IO (Either SomeException (Either ObjectGeneratorError ())) -> IO (Either ObjectGeneratorError ())
