@@ -2,6 +2,7 @@
 
 module LLVMTestUtils
   ( runAndCapture
+  , capture
   ) where
 
 import Control.Exception
@@ -32,7 +33,10 @@ foreign import ccall "restore_stdout" restoreStdout :: Ptr CFile -> IO ()
 foreign import ccall "dynamic" mkIntFunction :: FunPtr (Int -> IO Int) -> Int -> IO Int
 
 runAndCapture :: AST.Module -> ShortByteString -> (Int, ByteString) -> IO (Int, ByteString)
-runAndCapture ast symbol (arg, input) = do
+runAndCapture ast symbol = capture $ runModule mkIntFunction ast symbol
+
+capture :: (Int -> IO Int) -> (Int, ByteString) -> IO (Int, ByteString)
+capture f (arg, input) = do
   withTempFile "pietc-llvm-input" $ \inputFilePath ->
     withTempFile "pietc-llvm-input" $ \outputFilePath -> do
       BS.writeFile inputFilePath input
@@ -40,7 +44,7 @@ runAndCapture ast symbol (arg, input) = do
         withCString outputFilePath $ \outputFilePathCStr ->
           bracket (replaceStdin inputFilePathCStr) restoreStdin $ \_ ->
             bracket (replaceStdout outputFilePathCStr) restoreStdout $ \_ ->
-              runModule mkIntFunction ast symbol arg
+              f arg
       s <- BS.readFile outputFilePath
       return (res, s)
 
