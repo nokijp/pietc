@@ -12,9 +12,8 @@ import Control.Monad
 import Control.Monad.Except
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
-import qualified Language.Piet.Runtime as P
+import Language.Piet.Internal.LLVM
 import qualified LLVM.AST as AST
-import LLVM.Context
 import LLVM.Module
 import LLVM.Target
 import System.Directory
@@ -35,13 +34,9 @@ generateExecutable outPath ast = do
 generateObject :: (MonadIO m, MonadError ObjectGeneratorError m) => AST.Module -> m ByteString
 generateObject ast = captureException (\e -> CompileError $ show (e :: SomeException)) generate where
   generate =
-    withContext $ \ctx ->
-      withModuleFromLLVMAssembly ctx P.runtimeAssembly $ \runtimeMod ->
-        withModuleFromAST ctx ast $ \astMod ->
-          withHostTargetMachine $ \targetMachine -> do
-            linkModules astMod runtimeMod
-            let linkedModule = astMod
-            moduleObject targetMachine linkedModule
+    withLinkedModule ast $ \linkedModule ->
+      withHostTargetMachine $ \targetMachine ->
+        moduleObject targetMachine linkedModule
 
 link :: (MonadIO m, MonadError ObjectGeneratorError m) => FilePath -> ByteString -> m ()
 link outPath objectString = toM $ catchTempFileError $ try linkIO where
