@@ -36,6 +36,7 @@ executables:
     - -Werror
     dependencies:
     - pietc
+    - optparse-applicative
 
 tests:
   pietc-test:

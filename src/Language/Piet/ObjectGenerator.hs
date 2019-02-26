@@ -1,7 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Language.Piet.ObjectGenerator
-  ( generateExecutable
+  ( ObjectGeneratorError(..)
+  , generateExecutable
   , generateObject
   ) where
 
