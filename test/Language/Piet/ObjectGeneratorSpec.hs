@@ -7,6 +7,7 @@ module Language.Piet.ObjectGeneratorSpec
 
 import Control.Monad.Except
 import Data.Char
+import Language.Piet.CompileOption
 import Language.Piet.ObjectGenerator
 import qualified Language.Piet.Runtime as P
 import qualified LLVM.AST as AST
@@ -25,7 +26,7 @@ spec = do
   describe "generateExecutable" $
     context "when given a simple AST" $ do
       output <- runIO $ withTempFile "pietc-executable" $ \executablePath -> do
-        Right () <- runExceptT $ generateExecutable executablePath simpleAST
+        Right () <- runExceptT $ generateExecutable NoOptimization executablePath simpleAST
         readProcess executablePath [] ""
       it "generates an executable" $ output `shouldBe` "hello"
 

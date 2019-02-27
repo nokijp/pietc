@@ -3,6 +3,8 @@ module Language.Piet
   , compile
   , run
 
+  , OptimizationLevel(..)
+
   , ImageReaderError(..)
   , AdditionalColorStrategy(..)
   , MulticoloredCodelStrategy(..)
@@ -16,6 +18,7 @@ module Language.Piet
 
 import Control.Monad.Except
 import Language.Piet.AssemblyGenerator
+import Language.Piet.CompileOption
 import Language.Piet.ImageReader
 import Language.Piet.JITRunner
 import Language.Piet.ObjectGenerator
@@ -27,15 +30,15 @@ data PietError = PietImageReaderError ImageReaderError
                | PietObjectGeneratorError ObjectGeneratorError
                  deriving (Show, Eq)
 
-compile :: ImageConfig -> FilePath -> FilePath -> ExceptT PietError IO ()
-compile imageConfig inputPath outputPath = do
+compile :: ImageConfig -> OptimizationLevel -> FilePath -> FilePath -> ExceptT PietError IO ()
+compile imageConfig optimizationLevel inputPath outputPath = do
   ast <- makeAST imageConfig inputPath
-  withExceptT PietObjectGeneratorError $ generateExecutable outputPath ast
+  withExceptT PietObjectGeneratorError $ generateExecutable optimizationLevel outputPath ast
 
-run :: ImageConfig -> FilePath -> ExceptT PietError IO ()
-run imageConfig inputPath = do
+run :: ImageConfig -> OptimizationLevel -> FilePath -> ExceptT PietError IO ()
+run imageConfig optimizationLevel inputPath = do
   ast <- makeAST imageConfig inputPath
-  lift $ runJIT ast
+  lift $ runJIT optimizationLevel ast
 
 makeAST :: ImageConfig -> FilePath -> ExceptT PietError IO AST.Module
 makeAST imageConfig inputPath = do

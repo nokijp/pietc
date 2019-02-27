@@ -12,6 +12,7 @@ import Data.ByteString.Short (ShortByteString)
 import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Ptr
+import Language.Piet.CompileOption
 import Language.Piet.Internal.LLVM
 import qualified LLVM.AST as AST
 import LLVM.Linking
@@ -47,7 +48,7 @@ runModule :: (FunPtr (a -> IO b) -> a -> IO b) -> AST.Module -> ShortByteString 
 runModule mkFunction ast symbol x = do
   _ <- loadLibraryPermanently Nothing
   initializeNativeTarget
-  withLinkedModule ast $ \linkedModule ->
+  withLinkedModule NoOptimization ast $ \linkedModule ->
     withHostDynamicJITTargetMachine $ \targetMachine ->
       withObjectLinkingLayer $ \objectLayer ->
         withIRCompileLayer objectLayer targetMachine $ \compileLayer ->

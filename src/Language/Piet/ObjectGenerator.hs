@@ -12,6 +12,7 @@ import Control.Monad
 import Control.Monad.Except
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
+import Language.Piet.CompileOption
 import Language.Piet.Internal.LLVM
 import qualified LLVM.AST as AST
 import LLVM.Module
@@ -26,15 +27,15 @@ data ObjectGeneratorError = CompileError String
                           | TempFileError String
                             deriving (Show, Eq)
 
-generateExecutable :: (MonadIO m, MonadError ObjectGeneratorError m) => FilePath -> AST.Module -> m ()
-generateExecutable outPath ast = do
-  objectString <- generateObject ast
+generateExecutable :: (MonadIO m, MonadError ObjectGeneratorError m) => OptimizationLevel -> FilePath -> AST.Module -> m ()
+generateExecutable optimizationLevel outPath ast = do
+  objectString <- generateObject optimizationLevel ast
   link outPath objectString
 
-generateObject :: (MonadIO m, MonadError ObjectGeneratorError m) => AST.Module -> m ByteString
-generateObject ast = captureException (\e -> CompileError $ show (e :: SomeException)) generate where
+generateObject :: (MonadIO m, MonadError ObjectGeneratorError m) => OptimizationLevel -> AST.Module -> m ByteString
+generateObject optimizationLevel ast = captureException (\e -> CompileError $ show (e :: SomeException)) generate where
   generate =
-    withLinkedModule ast $ \linkedModule ->
+    withLinkedModule optimizationLevel ast $ \linkedModule ->
       withHostTargetMachine $ \targetMachine ->
         moduleObject targetMachine linkedModule
 

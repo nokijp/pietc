@@ -5,6 +5,7 @@ module Language.Piet.JITRunner
   ) where
 
 import Foreign.Ptr
+import Language.Piet.CompileOption
 import Language.Piet.Internal.LLVM
 import qualified LLVM.AST as AST
 import LLVM.Linking
@@ -14,11 +15,11 @@ import LLVM.Target
 
 foreign import ccall "dynamic" mkMainFunction :: FunPtr (IO Int) -> IO Int
 
-runJIT :: AST.Module -> IO ()
-runJIT ast = do
+runJIT :: OptimizationLevel -> AST.Module -> IO ()
+runJIT optimizationLevel ast = do
   _ <- loadLibraryPermanently Nothing
   initializeNativeTarget
-  withLinkedModule ast $ \linkedModule ->
+  withLinkedModule optimizationLevel ast $ \linkedModule ->
     withHostDynamicJITTargetMachine $ \targetMachine ->
       withObjectLinkingLayer $ \objectLayer ->
         withIRCompileLayer objectLayer targetMachine $ \compileLayer ->

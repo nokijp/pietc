@@ -7,6 +7,7 @@ module Language.Piet.JITRunnerSpec
 
 import Data.Char
 import Data.Functor
+import Language.Piet.CompileOption
 import Language.Piet.JITRunner
 import qualified Language.Piet.Runtime as P
 import qualified LLVM.AST as AST
@@ -23,7 +24,7 @@ spec :: Spec
 spec = do
   describe "runJIT" $
     context "when given a simple AST" $ do
-      (_, output) <- runIO $ capture (const $ runJIT simpleAST $> 0) (0, "")
+      (_, output) <- runIO $ capture (const $ runJIT NoOptimization simpleAST $> 0) (0, "")
       it "runs a module on JIT" $ output `shouldBe` "hello"
 
 simpleAST :: AST.Module
