@@ -74,7 +74,7 @@ nextBlock codelTable dp (x, y) blockSize = nextBlock' where
     (nextCodel, blockIndex) <- codelTable V.!? nextY >>= (V.!? nextX)
     case nextCodel of
       AchromaticCodel nextHue nextLightness ->
-        Just (if step == 0 then command currentHueAndLightness (nextHue, nextLightness) blockSize else NoOperation, blockIndex)
+        Just (if step == 0 then commandFromTransition currentHueAndLightness (nextHue, nextLightness) blockSize else NoOperation, blockIndex)
       WhiteCodel -> searchNext (step + 1) currentHueAndLightness (nextX, nextY)
       BlackCodel -> Nothing
 
@@ -83,12 +83,6 @@ move DPRight = first  succ
 move DPDown  = second succ
 move DPLeft  = first  pred
 move DPUp    = second pred
-
-command :: (Hue, Lightness) -> (Hue, Lightness) -> Int -> Command
-command (currentHue, currentLightness) (nextHue, nextLightness) = cmd where
-  cmd = commandConstructors V.! (hueDiff * 3 + lightnessDiff)
-  hueDiff = (fromEnum nextHue - fromEnum currentHue) `mod` 6
-  lightnessDiff = (fromEnum nextLightness - fromEnum currentLightness) `mod` 3
 
 {-# ANN minMaxCoords "HLint: ignore Redundant id" #-}
 {-# ANN minMaxCoords "HLint: ignore Use first" #-}

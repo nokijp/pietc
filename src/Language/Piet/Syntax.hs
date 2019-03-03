@@ -5,13 +5,14 @@ module Language.Piet.Syntax
   , DirectionPointer(..)
   , CodelChooser(..)
   , Command(..)
-  , commandConstructors
+  , commandFromTransition
   ) where
 
 import Data.IntMap (IntMap)
 import Data.Map (Map)
 import Data.Vector (Vector)
 import qualified Data.Vector.Generic as V
+import Language.Piet.Codel
 
 -- | A representation of a codel block.
 --
@@ -47,6 +48,12 @@ data Command = NoOperation
              | OutNumber
              | OutChar
              deriving (Show, Eq)
+
+commandFromTransition :: (Hue, Lightness) -> (Hue, Lightness) -> Int -> Command
+commandFromTransition (currentHue, currentLightness) (nextHue, nextLightness) = cmd where
+  cmd = commandConstructors V.! (hueDiff * 3 + lightnessDiff)
+  hueDiff = (fromEnum nextHue - fromEnum currentHue) `mod` 6
+  lightnessDiff = (fromEnum nextLightness - fromEnum currentLightness) `mod` 3
 
 commandConstructors :: Vector (Int -> Command)
 commandConstructors = V.fromList [ const NoOperation
