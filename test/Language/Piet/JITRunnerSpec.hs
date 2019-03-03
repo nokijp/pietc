@@ -9,7 +9,7 @@ import Data.Char
 import Data.Functor
 import Language.Piet.CompileOption
 import Language.Piet.JITRunner
-import qualified Language.Piet.Runtime as P
+import qualified Language.Piet.Internal.Runtime as P
 import qualified LLVM.AST as AST
 import qualified LLVM.AST.Constant as C
 import qualified LLVM.AST.Type as T

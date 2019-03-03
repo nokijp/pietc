@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TupleSections #-}
 
-module Language.Piet.Runtime
+module Language.Piet.Internal.Runtime
   ( runtimeAssembly
   , declareFunctions
   , resetStack

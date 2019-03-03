@@ -9,7 +9,7 @@ import Control.Monad.Except
 import Data.Char
 import Language.Piet.CompileOption
 import Language.Piet.ObjectGenerator
-import qualified Language.Piet.Runtime as P
+import qualified Language.Piet.Internal.Runtime as P
 import qualified LLVM.AST as AST
 import qualified LLVM.AST.Constant as C
 import qualified LLVM.AST.Type as T

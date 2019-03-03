@@ -19,7 +19,7 @@ import qualified Data.Map as M
 import Data.Maybe
 import GHC.Exts
 import Language.Piet.Internal.DPCC
-import qualified Language.Piet.Runtime as P
+import qualified Language.Piet.Internal.Runtime as P
 import Language.Piet.Syntax
 import qualified LLVM.AST as AST
 import qualified LLVM.AST.Constant as C

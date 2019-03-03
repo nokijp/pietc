@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Language.Piet.RuntimeSpec
+module Language.Piet.Internal.RuntimeSpec
   ( main
   , spec
   ) where
 
 import Control.Monad
-import qualified Language.Piet.Runtime as P
+import qualified Language.Piet.Internal.Runtime as P
 import qualified LLVM.AST as AST
 import qualified LLVM.AST.Type as T
 import LLVM.IRBuilder

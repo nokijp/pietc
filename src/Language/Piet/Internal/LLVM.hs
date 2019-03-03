@@ -5,7 +5,7 @@ module Language.Piet.Internal.LLVM
   ) where
 
 import Language.Piet.CompileOption
-import qualified Language.Piet.Runtime as P
+import qualified Language.Piet.Internal.Runtime as P
 import qualified LLVM.AST as AST
 import qualified LLVM.CodeGenOpt as CodeGenOpt
 import qualified LLVM.CodeModel as CodeModel
