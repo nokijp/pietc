@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TupleSections #-}
 
+-- | Functions to parse images.
 module Language.Piet.Parser
   ( ParserError(..)
   , parse
@@ -24,15 +25,17 @@ import Language.Piet.Codel
 import Language.Piet.Internal.Filler
 import Language.Piet.Syntax
 
-data ParserError = EmptyBlockTableError
-                 | IllegalInitialColorError Codel
-                 | MissingCodelIndexError Int
-                 | IllegalCoordinateError Int Int
+data ParserError = EmptyBlockTableError  -- ^ The block table is empty.
+                 | IllegalInitialColorError Codel  -- ^ The initial codel of the block table is illegal.
+                 | MissingCodelIndexError Int  -- ^ A codel index in the codel table is missing.
+                 | IllegalCoordinateError Int Int  -- ^ A coordinate in the codel table is missing in the image.
                    deriving (Show, Eq)
 
+-- | Parse codels into a 'SyntaxGraph'.
 parse :: MonadError ParserError m => Vector (Vector Codel) -> m SyntaxGraph
 parse image = let (indices, positionTable) = fillAll image in parseFilledImage (V.zipWith V.zip image indices, positionTable)
 
+-- | Parse a filled image which is returned by 'fillAll' into a 'SyntaxGraph'.
 parseFilledImage :: MonadError ParserError m => (Vector (Vector (Codel, Int)), IntMap [(Int, Int)]) -> m SyntaxGraph
 parseFilledImage (codelTable, blockTable) = parse' where
   parse' :: MonadError ParserError m => m SyntaxGraph

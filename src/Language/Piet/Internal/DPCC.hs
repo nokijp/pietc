@@ -11,6 +11,11 @@ import Language.Piet.Syntax
 
 type DPCC = (DirectionPointer, CodelChooser)
 
+-- | Get a map containing a key DPCC that references DPCCs which will be switched to the key in the next step.
+-- The first argument is possible DPCCs to move to next blocks.
+--
+-- When given @[(DPRight, CCLeft), (DPUp, CCLeft)]@,
+-- only @(DPRight, CCLeft)@ and @(DPRight, CCRight)@ in the current step will be switched to @(DPRight, CCLeft)@ in the next step.
 dpccsToBackwardDPCCTable :: [DPCC] -> Map DPCC [DPCC]
 dpccsToBackwardDPCCTable [] = M.empty
 dpccsToBackwardDPCCTable possibleDPCCs = M.fromList $ nearestTableToBackwardTable $ nearestDPCCTable possibleDPCCs where

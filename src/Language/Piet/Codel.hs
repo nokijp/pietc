@@ -1,3 +1,4 @@
+-- | The types for codels.
 module Language.Piet.Codel
   ( Codel(..)
   , Hue(..)

@@ -2,6 +2,7 @@
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TupleSections #-}
 
+-- | Functions to generate assembly code from 'SyntaxGraph'.
 module Language.Piet.AssemblyGenerator
   ( generateAssembly
   ) where
@@ -25,6 +26,7 @@ import qualified LLVM.AST.Constant as C
 import qualified LLVM.AST.Type as T
 import qualified LLVM.IRBuilder as IR
 
+-- | Generate an AST from a 'SyntaxGraph'.
 generateAssembly :: SyntaxGraph -> AST.Module
 generateAssembly syntax = IR.buildModule "" $ do
   P.declareFunctions

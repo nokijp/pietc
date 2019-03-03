@@ -25,6 +25,10 @@ data FillerParams a b s = FillerParams { _paramSourceImage :: Vector (Vector a)
                                        }
 makeLenses ''FillerParams
 
+-- | Fill all connected pixels in a given image and return an filled image and a pixel map.
+--
+-- The filled image is consists of component indices.
+-- The pixel map contains coordinates of pixels which belong to a component whose index is the key.
 fillAll :: Eq a => Vector (Vector a) -> (Vector (Vector Int), IntMap [(Int, Int)])
 fillAll image = runST $ do
   filledRefs <- V.mapM (V.thaw . (Nothing <$)) image

@@ -11,6 +11,7 @@ import Control.Monad.Except
 import Data.Bits
 import Prelude hiding (fail)
 
+-- | Convert a colored image to a RGB8Image.
 toRGB8ImageM :: MonadError String m => DynamicImage -> m (Image PixelRGB8)
 toRGB8ImageM (ImageY8     _)     = failConversion
 toRGB8ImageM (ImageY16    _)     = failConversion
@@ -29,6 +30,7 @@ toRGB8ImageM (ImageCMYK16 image) = return $ toRGB8Image image
 failConversion :: MonadError String m => m a
 failConversion = throwError "can't convert from grayscale images"
 
+-- | RGB8 convertible pixels and images.
 class Pixel a => ToRGB8 a where
   toRGB8Pixel :: a -> PixelRGB8
   toRGB8Image :: Image a -> Image PixelRGB8

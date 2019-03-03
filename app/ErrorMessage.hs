@@ -5,8 +5,8 @@ module ErrorMessage
 import Language.Piet
 
 errorToMessage :: PietError -> String
-errorToMessage (PietImageReaderError (FileReadError s)) = "error: " ++ s
-errorToMessage (PietImageReaderError (ImageTypeError s)) = "error: " ++ s
+errorToMessage (PietImageReaderError (ReadImageFileError s)) = "error: " ++ s
+errorToMessage (PietImageReaderError (UnsupportedImageError s)) = "error: " ++ s
 errorToMessage (PietImageReaderError CodelSizeError) = "error: the given codel size is invalid"
 errorToMessage (PietParserError EmptyBlockTableError) = "error: the image has no color block"
 errorToMessage (PietParserError (IllegalInitialColorError c)) = "error: the initial codel is an invalid color " ++ show c

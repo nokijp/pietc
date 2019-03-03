@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
+-- | Functions to read images.
 module Language.Piet.ImageReader
   ( ImageReaderError(..)
   , AdditionalColorStrategy(..)
@@ -24,21 +25,23 @@ import GHC.Exts
 import Language.Piet.Codel
 import Language.Piet.Internal.ToRGB8
 
-data ImageReaderError = FileReadError String
-                      | ImageTypeError String
-                      | CodelSizeError
+data ImageReaderError = ReadImageFileError String  -- ^ The image file is unreadable.
+                      | UnsupportedImageError String  -- ^ The input image has an unsupported format.
+                      | CodelSizeError  -- ^ The specified size of codel is not fit for the image.
                         deriving (Show, Eq)
 
-data AdditionalColorStrategy = AdditionalColorAsWhite
-                             | AdditionalColorAsBlack
-                             | AdditionalColorNearest
+-- | This type is to determine how to deal with additional colors such as orange, gray, etc.
+data AdditionalColorStrategy = AdditionalColorAsWhite  -- ^ Treating as a white codel.
+                             | AdditionalColorAsBlack  -- ^ Treating as a black codel.
+                             | AdditionalColorNearest  -- ^ Treating as a codel which has the nearest color.
                                deriving (Show, Eq, Ord)
 
-data MulticoloredCodelStrategy = MulticoloredCodelAsWhite
-                               | MulticoloredCodelAsBlack
-                               | MulticoloredCodelCenter
-                               | MulticoloredCodelModal
-                               | MulticoloredCodelAverage
+-- | This type is to determine how to deal with multicolored codels.
+data MulticoloredCodelStrategy = MulticoloredCodelAsWhite  -- ^ Treating as a white codel.
+                               | MulticoloredCodelAsBlack  -- ^ Treating as a black codel.
+                               | MulticoloredCodelCenter  -- ^ Picking up a center pixel.
+                               | MulticoloredCodelModal  -- ^ Finding the modal color, the most frequent color.
+                               | MulticoloredCodelAverage  -- ^ Calculating an average color.
                                  deriving (Show, Eq, Ord)
 
 data ImageConfig = ImageConfig { additionalColor :: AdditionalColorStrategy
@@ -52,17 +55,20 @@ defaultImageConfig = ImageConfig { additionalColor = AdditionalColorNearest
                                  , codelSize = 1
                                  }
 
+-- | Read an image and then convert to codels.
 readCodels :: (MonadIO m, MonadError ImageReaderError m) => ImageConfig -> FilePath -> m (Vector (Vector Codel))
 readCodels config path = do
   imageEither <- liftIO $ readImage path
-  image <- liftEither $ left FileReadError imageEither
+  image <- liftEither $ left ReadImageFileError imageEither
   imageToCodels config image
 
+-- | Convert an image to codels.
 imageToCodels :: MonadError ImageReaderError m => ImageConfig -> DynamicImage -> m (Vector (Vector Codel))
 imageToCodels config dynamicImage = do
-  rgbImage <- liftEither $ left ImageTypeError $ toRGB8ImageM dynamicImage
+  rgbImage <- liftEither $ left UnsupportedImageError $ toRGB8ImageM dynamicImage
   rgbImageToCodels config rgbImage
 
+-- | Convert an image to codels. This function accepts only images in RGB8 format.
 rgbImageToCodels :: MonadError ImageReaderError m => ImageConfig -> Image PixelRGB8 -> m (Vector (Vector Codel))
 rgbImageToCodels config image = do
   let

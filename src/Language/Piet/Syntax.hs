@@ -1,16 +1,29 @@
+-- | A representation of the syntax of Piet.
 module Language.Piet.Syntax
-  ( DirectionPointer(..)
+  ( Block(..)
+  , SyntaxGraph(..)
+  , DirectionPointer(..)
   , CodelChooser(..)
   , Command(..)
   , commandConstructors
-  , Block(..)
-  , SyntaxGraph(..)
   ) where
 
 import Data.IntMap (IntMap)
 import Data.Map (Map)
 import Data.Vector (Vector)
 import qualified Data.Vector.Generic as V
+
+-- | A representation of a codel block.
+--
+-- 'Block' is a map to a pair of
+-- a command which will be executed when moving into the next codel block
+-- and an index of the next codel block.
+newtype Block = Block { nextBlockTable :: Map (DirectionPointer, CodelChooser) (Command, Int) } deriving (Show, Eq)
+
+-- | A representation of the syntax of Piet.
+--
+-- 'SyntaxGraph' has a graph structure whose nodes represent codel blocks and edges represent the next steps.
+newtype SyntaxGraph = SyntaxGraph { getSyntaxGraph :: IntMap Block } deriving (Show, Eq)
 
 data DirectionPointer = DPRight | DPDown | DPLeft | DPUp deriving (Show, Eq, Ord, Enum, Bounded)
 data CodelChooser = CCLeft | CCRight deriving (Show, Eq, Ord, Enum, Bounded)
@@ -55,6 +68,3 @@ commandConstructors = V.fromList [ const NoOperation
                                  , const OutNumber
                                  , const OutChar
                                  ]
-
-newtype Block = Block { nextBlockTable :: Map (DirectionPointer, CodelChooser) (Command, Int) } deriving (Show, Eq)
-newtype SyntaxGraph = SyntaxGraph { getSyntaxGraph :: IntMap Block } deriving (Show, Eq)

@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- | Functions to run programs on JIT.
 module Language.Piet.JITRunner
   ( runJIT
   ) where
@@ -15,6 +16,7 @@ import LLVM.Target
 
 foreign import ccall "dynamic" mkMainFunction :: FunPtr (IO Int) -> IO Int
 
+-- | Run programs on just-in-time compilation.
 runJIT :: OptimizationLevel -> AST.Module -> IO ()
 runJIT optimizationLevel ast = do
   _ <- loadLibraryPermanently Nothing

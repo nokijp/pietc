@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
+-- | Functions to generate executables.
 module Language.Piet.ObjectGenerator
   ( ObjectGeneratorError(..)
   , generateExecutable
@@ -22,16 +23,18 @@ import System.Exit
 import System.IO
 import System.Process
 
-data ObjectGeneratorError = CompileError String
-                          | LinkError String
-                          | TempFileError String
+data ObjectGeneratorError = CompileError String  -- ^ Faild to compile.
+                          | LinkError String  -- ^ Failed to link object.
+                          | TempFileError String  -- ^ Failed to create a temporary file.
                             deriving (Show, Eq)
 
+-- | Generate an executable from an AST and write to a file in the specified path.
 generateExecutable :: (MonadIO m, MonadError ObjectGeneratorError m) => OptimizationLevel -> FilePath -> AST.Module -> m ()
 generateExecutable optimizationLevel outPath ast = do
   objectString <- generateObject optimizationLevel ast
   link outPath objectString
 
+-- | Generate an executable from an AST.
 generateObject :: (MonadIO m, MonadError ObjectGeneratorError m) => OptimizationLevel -> AST.Module -> m ByteString
 generateObject optimizationLevel ast = captureException (\e -> CompileError $ show (e :: SomeException)) generate where
   generate =
