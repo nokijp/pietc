@@ -8,8 +8,8 @@ module Language.Piet.SyntaxVisualizerSpec
 import qualified Data.IntMap as IM
 import qualified Data.Map as M
 import Data.Text (Text)
-import Language.Piet.SyntaxVisualizer
 import Language.Piet.Syntax
+import Language.Piet.SyntaxVisualizer
 import Test.Hspec
 import Text.InterpolatedString.Perl6
 
