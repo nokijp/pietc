@@ -103,14 +103,5 @@ commandToLLVMInstruction OutChar     _       = P.outChar
 int32 :: Integer -> AST.Operand
 int32 = AST.ConstantOperand . C.Int 32
 
-showDPCC :: (DirectionPointer, CodelChooser) -> String
-showDPCC (dp, cc) = [charDP dp, charCC cc] where
-  charDP DPRight = 'r'
-  charDP DPDown  = 'd'
-  charDP DPLeft  = 'l'
-  charDP DPUp    = 'u'
-  charCC CCLeft  = 'l'
-  charCC CCRight = 'r'
-
 stringToShort :: String -> ShortByteString
 stringToShort = B.toShort . BC.pack

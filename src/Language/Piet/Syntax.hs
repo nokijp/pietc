@@ -6,6 +6,8 @@ module Language.Piet.Syntax
   , CodelChooser(..)
   , Command(..)
   , commandFromTransition
+  , showCommand
+  , showDPCC
   ) where
 
 import Data.IntMap (IntMap)
@@ -75,3 +77,32 @@ commandConstructors = V.fromList [ const NoOperation
                                  , const OutNumber
                                  , const OutChar
                                  ]
+
+showCommand :: Command -> String
+showCommand NoOperation = "noop"
+showCommand (Push n)    = "push " ++ show n
+showCommand Pop         = "pop"
+showCommand Add         = "add"
+showCommand Subtract    = "subtract"
+showCommand Multiply    = "multiply"
+showCommand Divide      = "divide"
+showCommand Mod         = "mod"
+showCommand Not         = "not"
+showCommand Greater     = "greater"
+showCommand Pointer     = "pointer"
+showCommand Switch      = "switch"
+showCommand Duplicate   = "duplicate"
+showCommand Roll        = "roll"
+showCommand InNumber    = "in (number)"
+showCommand InChar      = "in (char)"
+showCommand OutNumber   = "out (number)"
+showCommand OutChar     = "out (char)"
+
+showDPCC :: (DirectionPointer, CodelChooser) -> String
+showDPCC (dp, cc) = [charDP dp, charCC cc] where
+  charDP DPRight = 'r'
+  charDP DPDown  = 'd'
+  charDP DPLeft  = 'l'
+  charDP DPUp    = 'u'
+  charCC CCLeft  = 'l'
+  charCC CCRight = 'r'
