@@ -27,7 +27,7 @@ syntaxToDOT graph = T.intercalate "\n" [ "digraph {"
 
 dotLines :: Text -> SyntaxGraph -> [Text]
 dotLines indent graph = do
-  (from, block) <- IM.toAscList $ getSyntaxGraph graph
+  (from, block) <- IM.toAscList $ (\(SyntaxGraph _ _ x) -> x) graph  -- FIXME
   (dpcc, nextBlock) <- M.toAscList $ nextBlockTable block
   let nextDPCC = getDPCC nextBlock
   return $ T.concat [ indent

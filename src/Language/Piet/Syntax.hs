@@ -31,7 +31,12 @@ data NextBlock = NextBlock { getCommand :: Command  -- ^ The command which will 
 -- | A representation of the syntax of Piet.
 --
 -- 'SyntaxGraph' has a graph structure whose nodes represent codel blocks and edges represent the next steps.
-newtype SyntaxGraph = SyntaxGraph { getSyntaxGraph :: IntMap Block } deriving (Show, Eq)
+data SyntaxGraph = SyntaxGraph { getInitialCodelIndex :: Int
+                               , getInitialDPCC :: DPCC
+                               , getBlockMap :: IntMap Block
+                               }
+                 | EmptySyntaxGraph
+                   deriving (Show, Eq)
 
 data DirectionPointer = DPRight | DPDown | DPLeft | DPUp deriving (Show, Eq, Ord, Enum, Bounded)
 data CodelChooser = CCLeft | CCRight deriving (Show, Eq, Ord, Enum, Bounded)

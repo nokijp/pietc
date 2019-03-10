@@ -9,7 +9,6 @@ module Language.Piet.Parser
   ) where
 
 import Control.Arrow
-import Control.Monad
 import Control.Monad.Except
 import Control.Monad.State
 import Data.IntMap (IntMap)
@@ -28,9 +27,8 @@ import Language.Piet.Internal.WhiteCodelSlider
 import Language.Piet.Syntax
 
 data ParserError = EmptyBlockTableError  -- ^ The block table is empty.
-                 | IllegalInitialColorError Codel  -- ^ The initial codel of the block table is illegal.
+                 | IllegalInitialColorError  -- ^ The initial codel of the block table is black.
                  | MissingCodelIndexError Int  -- ^ A codel index in the codel table is missing.
-                 | IllegalCoordinateError Int Int  -- ^ A coordinate in the codel table is missing in the image.
                    deriving (Show, Eq)
 
 -- | Parse codels into a 'SyntaxGraph'.
@@ -39,22 +37,22 @@ parse image = let (indices, positionTable) = fillAll image in parseFilledImage (
 
 -- | Parse a filled image which is returned by 'fillAll' into a 'SyntaxGraph'.
 parseFilledImage :: MonadError ParserError m => (Vector (Vector (Codel, Int)), IntMap [(Int, Int)]) -> m SyntaxGraph
-parseFilledImage (codelTable, blockTable) = parse' where
-  parse' :: MonadError ParserError m => m SyntaxGraph
-  parse' = do
-    when (IM.null blockTable) $ throwError EmptyBlockTableError
-    let initialIndex = minimum $ IM.keys blockTable
-    (initialX, initialY) <- justOrThrow (MissingCodelIndexError initialIndex) $ blockTable IM.!? initialIndex >>= listToMaybe
-    (initialCodel, _) <- justOrThrow (IllegalCoordinateError initialX initialY) $ codelTable V.!? initialY >>= (V.!? initialX)
-    unless (isAchromaticCodel initialCodel) $ throwError $ IllegalInitialColorError initialCodel
-    SyntaxGraph <$> execStateT (parseState initialIndex) IM.empty
+parseFilledImage (codelTable, blockTable) = searchInitialBlock >>= parseFrom where
+  parseFrom :: MonadError ParserError m => Maybe (Int, DPCC) -> m SyntaxGraph
+  parseFrom Nothing = return EmptySyntaxGraph
+  parseFrom (Just (initialBlockIndex, initialDPCC)) = do
+    blockMap <- execStateT (parseState initialBlockIndex) IM.empty
+    return SyntaxGraph { getInitialCodelIndex = initialBlockIndex
+                       , getInitialDPCC = initialDPCC
+                       , getBlockMap = blockMap
+                       }
 
   parseState :: (MonadError ParserError m, MonadState (IntMap Block) m) => Int -> m ()
   parseState blockIndex = do
     blockCoords <- justOrThrow (MissingCodelIndexError blockIndex) $ blockTable IM.!? blockIndex
 
     let blockSize = length blockCoords
-    let nextBlockList = mapMaybe (\(dpcc, pos) -> (dpcc,) <$> nextBlock codelTable dpcc pos blockSize) $ minMaxCoords blockCoords
+    let nextBlockList = mapMaybe (\(dpcc, pos) -> (dpcc,) <$> searchNextBlock pos dpcc blockSize) $ minMaxCoords blockCoords
     let block = Block $ M.fromList nextBlockList
     modify $ IM.insert blockIndex block
 
@@ -63,17 +61,26 @@ parseFilledImage (codelTable, blockTable) = parse' where
     let unvisitedBlockIndices = filter (`IS.notMember` visitedIndices) nextBlockIndices
     mapM_ parseState unvisitedBlockIndices
 
-nextBlock :: Vector (Vector (Codel, Int)) -> DPCC -> (Int, Int) -> Int -> Maybe NextBlock
-nextBlock codelTable dpcc (x, y) blockSize = do
-  (AchromaticCodel currentHue currentLightness, _) <- codelTable V.!? y >>= (V.!? x)
-  let (nextX, nextY) = move (getDP dpcc) (x, y)
-  (nextCodel, blockIndex) <- codelTable V.!? nextY >>= (V.!? nextX)
-  case nextCodel of
-    AchromaticCodel nextHue nextLightness ->
-      let command = commandFromTransition (currentHue, currentLightness) (nextHue, nextLightness) blockSize
-      in Just NextBlock { getCommand = command, getDPCC = dpcc, getBlockIndex = blockIndex }
-    WhiteCodel -> slideOnWhiteBlock codelTable (nextX, nextY) dpcc
-    BlackCodel -> Nothing
+  searchInitialBlock :: MonadError ParserError m => m (Maybe (Int, DPCC))
+  searchInitialBlock = do
+    (initialCodel, initialBlockIndex) <- justOrThrow EmptyBlockTableError $ codelTable V.!? 0 >>= (V.!? 0)
+    let initialDPCC = DPCC { getDP = DPRight, getCC = CCLeft }
+    case initialCodel of
+      AchromaticCodel _ _ -> return $ Just (initialBlockIndex, initialDPCC)
+      WhiteCodel -> return $ (getBlockIndex &&& getDPCC) <$> slideOnWhiteBlock codelTable (0, 0) initialDPCC
+      BlackCodel -> throwError IllegalInitialColorError
+
+  searchNextBlock :: (Int, Int) -> DPCC -> Int -> Maybe NextBlock
+  searchNextBlock (x, y) dpcc blockSize = do
+    (AchromaticCodel currentHue currentLightness, _) <- codelTable V.!? y >>= (V.!? x)
+    let (nextX, nextY) = move (getDP dpcc) (x, y)
+    (nextCodel, blockIndex) <- codelTable V.!? nextY >>= (V.!? nextX)
+    case nextCodel of
+      AchromaticCodel nextHue nextLightness ->
+        let command = commandFromTransition (currentHue, currentLightness) (nextHue, nextLightness) blockSize
+        in Just NextBlock { getCommand = command, getDPCC = dpcc, getBlockIndex = blockIndex }
+      WhiteCodel -> slideOnWhiteBlock codelTable (nextX, nextY) dpcc
+      BlackCodel -> Nothing
 
 {-# ANN minMaxCoords "HLint: ignore Redundant id" #-}
 {-# ANN minMaxCoords "HLint: ignore Use first" #-}

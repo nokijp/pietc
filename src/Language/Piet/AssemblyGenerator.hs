@@ -30,7 +30,7 @@ import qualified LLVM.IRBuilder as IR
 generateAssembly :: SyntaxGraph -> AST.Module
 generateAssembly syntax = IR.buildModule "" $ do
   P.declareFunctions
-  _ <- IR.function "main" [] T.i32 $ \_ -> mainFunction $ getSyntaxGraph syntax
+  _ <- IR.function "main" [] T.i32 $ \_ -> mainFunction $ (\(SyntaxGraph _ _ x) -> x) syntax  -- FIXME
   return ()
 
 mainFunction :: (MonadFix m, IR.MonadModuleBuilder m) => IntMap Block -> IR.IRBuilderT m ()
