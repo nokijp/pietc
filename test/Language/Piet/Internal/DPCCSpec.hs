@@ -6,7 +6,7 @@ module Language.Piet.Internal.DPCCSpec
 import Control.Monad
 import qualified Data.Map as M
 import Language.Piet.Internal.DPCC
-import Language.Piet.Syntax
+import SyntaxTestHelper
 import Test.Hspec
 
 main :: IO ()
@@ -14,15 +14,6 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  let
-    rl = DPCC DPRight CCLeft
-    rr = DPCC DPRight CCRight
-    dl = DPCC DPDown CCLeft
-    dr = DPCC DPDown CCRight
-    ll = DPCC DPLeft CCLeft
-    lr = DPCC DPLeft CCRight
-    ul = DPCC DPUp CCLeft
-    ur = DPCC DPUp CCRight
   describe "dpccsToBackwardDPCCTable" $ do
     forM_
       [ ([], M.empty)

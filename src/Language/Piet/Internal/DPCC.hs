@@ -7,6 +7,7 @@ import Data.Map (Map)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import GHC.Exts
+import Language.Piet.Internal.Cyclic
 import Language.Piet.Syntax
 
 -- | Get a map containing a key DPCC that references DPCCs which will be switched to the key in the next step.
@@ -45,7 +46,3 @@ nearestDPCCTable possibleDPCCs = (id &&& nearestDPCC) <$> allDPCCs where
   allDPCCs = DPCC <$> [minBound .. maxBound] <*> [minBound .. maxBound]
   possibleDPCCSet = S.fromList possibleDPCCs
   possibleDPSet = S.map getDP possibleDPCCSet
-
-cyclicSucc :: (Eq a, Enum a, Bounded a) => a -> a
-cyclicSucc x | x == maxBound = minBound
-             | otherwise = succ x

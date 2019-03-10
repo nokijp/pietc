@@ -20,9 +20,10 @@ import qualified Data.Map as M
 import Data.Maybe
 import Data.Tuple
 import Data.Vector (Vector)
-import qualified Data.Vector.Generic as V
+import qualified Data.Vector as V
 import Language.Piet.Codel
 import Language.Piet.Internal.Filler
+import Language.Piet.Internal.Position
 import Language.Piet.Syntax
 
 data ParserError = EmptyBlockTableError  -- ^ The block table is empty.
@@ -78,12 +79,6 @@ nextBlock codelTable dpcc (x, y) blockSize = nextBlock' where
         in Just NextBlock { getCommand = command, getDPCC = dpcc, getBlockIndex = blockIndex }
       WhiteCodel -> searchNext (step + 1) currentHueAndLightness (nextX, nextY)
       BlackCodel -> Nothing
-
-move :: DirectionPointer -> (Int, Int) -> (Int, Int)
-move DPRight = first  succ
-move DPDown  = second succ
-move DPLeft  = first  pred
-move DPUp    = second pred
 
 {-# ANN minMaxCoords "HLint: ignore Redundant id" #-}
 {-# ANN minMaxCoords "HLint: ignore Use first" #-}

@@ -11,11 +11,11 @@ import qualified Data.IntMap as IM
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Vector (Vector)
-import qualified Data.Vector.Generic as V
+import qualified Data.Vector as V
 import Language.Piet.Internal.Filler
 import Test.Hspec
-import Text.InterpolatedString.Perl6
 import TestUtils
+import Text.InterpolatedString.Perl6
 
 main :: IO ()
 main = hspec spec
