@@ -24,7 +24,7 @@ spec :: Spec
 spec = do
   describe "generateAssembly" $ do
     forM_
-      [ ("emptyGraph", SyntaxGraph 0 rl IM.empty, emptyIR)
+      [ ("emptyGraph", EmptySyntaxGraph, emptyIR)
       , ("smallestGraph", smallestGraph, smallestIR)
       , ("complexGraph", complexGraph, complexIR)
       ] $ \(name, inputGraph, expected) ->
@@ -60,12 +60,6 @@ declare external ccc void @reset_stack()
 
 define external ccc i32 @main() {
 entry:
-  %dpcc_ptr = alloca i32, align 4
-  store i32 0, i32* %dpcc_ptr, align 4
-  br label %exit
-
-exit:
-  call ccc void @reset_stack()
   ret i32 0
 }
 |]
@@ -183,6 +177,7 @@ complexGraph = SyntaxGraph 0 rl $ IM.fromList
     , Block $ M.fromList [ (rl, NextBlock Pointer rl 9)
                          , (rr, NextBlock Pointer rr 9)
                          , (dl, NextBlock NoOperation dl 23)
+                         , (dr, NextBlock NoOperation ll 22)
                          , (ul, NextBlock Add ul 6)
                          , (ur, NextBlock Add ur 6)
                          ]
@@ -199,6 +194,10 @@ complexGraph = SyntaxGraph 0 rl $ IM.fromList
   , ( 17
     , Block $ M.fromList [ (rl, NextBlock (Push 1) rl 18)
                          , (rr, NextBlock (Push 1) rr 18)
+                         , (dl, NextBlock NoOperation lr 23)
+                         , (dr, NextBlock NoOperation ll 23)
+                         , (ll, NextBlock NoOperation ur 12)
+                         , (lr, NextBlock NoOperation ul 12)
                          , (ul, NextBlock Pop ul 9)
                          , (ur, NextBlock Pop ur 9)
                          ]
@@ -214,6 +213,8 @@ complexGraph = SyntaxGraph 0 rl $ IM.fromList
   , ( 22
     , Block $ M.fromList [ (rl, NextBlock NoOperation rl 23)
                          , (rr, NextBlock NoOperation rr 23)
+                         , (ll, NextBlock NoOperation ur 12)
+                         , (lr, NextBlock NoOperation ul 12)
                          , (ul, NextBlock NoOperation ul 12)
                          , (ur, NextBlock NoOperation ur 12)
                          ]
@@ -228,7 +229,9 @@ complexGraph = SyntaxGraph 0 rl $ IM.fromList
                          ]
     )
   , ( 25
-    , Block $ M.fromList [ (ll, NextBlock NoOperation ll 23)
+    , Block $ M.fromList [ (rl, NextBlock NoOperation ll 25)
+                         , (rr, NextBlock NoOperation lr 25)
+                         , (ll, NextBlock NoOperation ll 23)
                          , (lr, NextBlock NoOperation lr 23)
                          , (ul, NextBlock Duplicate ul 18)
                          , (ur, NextBlock Duplicate ur 18)
@@ -427,7 +430,7 @@ jump_9_1_ur:
 
 block_12:
   %dpcc_12 = load i32, i32* %dpcc_ptr, align 4
-  switch i32 %dpcc_12, label %exit [i32 0, label %jump_12_9_rl i32 1, label %jump_12_9_rr i32 2, label %jump_12_23_dl i32 3, label %jump_12_23_dl i32 4, label %jump_12_6_ur i32 5, label %jump_12_6_ul i32 6, label %jump_12_6_ul i32 7, label %jump_12_6_ur]
+  switch i32 %dpcc_12, label %exit [i32 0, label %jump_12_9_rl i32 1, label %jump_12_9_rr i32 2, label %jump_12_23_dl i32 3, label %jump_12_22_dr i32 4, label %jump_12_6_ur i32 5, label %jump_12_6_ul i32 6, label %jump_12_6_ul i32 7, label %jump_12_6_ur]
 jump_12_9_rl:
   call ccc void @pointer(i32* %dpcc_ptr)
   br label %block_9
@@ -435,8 +438,10 @@ jump_12_9_rr:
   call ccc void @pointer(i32* %dpcc_ptr)
   br label %block_9
 jump_12_23_dl:
-  store i32 2, i32* %dpcc_ptr, align 4
   br label %block_23
+jump_12_22_dr:
+  store i32 4, i32* %dpcc_ptr, align 4
+  br label %block_22
 jump_12_6_ul:
   store i32 6, i32* %dpcc_ptr, align 4
   call ccc void @add()
@@ -472,19 +477,29 @@ jump_15_9_ur:
 
 block_17:
   %dpcc_17 = load i32, i32* %dpcc_ptr, align 4
-  switch i32 %dpcc_17, label %exit [i32 0, label %jump_17_18_rl i32 1, label %jump_17_18_rr i32 2, label %jump_17_9_ul i32 3, label %jump_17_9_ur i32 4, label %jump_17_9_ur i32 5, label %jump_17_9_ul i32 6, label %jump_17_9_ul i32 7, label %jump_17_9_ur]
+  switch i32 %dpcc_17, label %exit [i32 0, label %jump_17_18_rl i32 1, label %jump_17_18_rr i32 2, label %jump_17_23_dl i32 3, label %jump_17_23_dr i32 4, label %jump_17_12_ll i32 5, label %jump_17_12_lr i32 6, label %jump_17_9_ul i32 7, label %jump_17_9_ur]
 jump_17_18_rl:
   call ccc void @push(i32 1)
   br label %block_18
 jump_17_18_rr:
   call ccc void @push(i32 1)
   br label %block_18
-jump_17_9_ul:
+jump_17_23_dl:
+  store i32 5, i32* %dpcc_ptr, align 4
+  br label %block_23
+jump_17_23_dr:
+  store i32 4, i32* %dpcc_ptr, align 4
+  br label %block_23
+jump_17_12_ll:
+  store i32 7, i32* %dpcc_ptr, align 4
+  br label %block_12
+jump_17_12_lr:
   store i32 6, i32* %dpcc_ptr, align 4
+  br label %block_12
+jump_17_9_ul:
   call ccc void @pop()
   br label %block_9
 jump_17_9_ur:
-  store i32 7, i32* %dpcc_ptr, align 4
   call ccc void @pop()
   br label %block_9
 
@@ -512,16 +527,20 @@ jump_18_15_ul:
 
 block_22:
   %dpcc_22 = load i32, i32* %dpcc_ptr, align 4
-  switch i32 %dpcc_22, label %exit [i32 0, label %jump_22_23_rl i32 1, label %jump_22_23_rr i32 2, label %jump_22_12_ul i32 3, label %jump_22_12_ur i32 4, label %jump_22_12_ur i32 5, label %jump_22_12_ul i32 6, label %jump_22_12_ul i32 7, label %jump_22_12_ur]
+  switch i32 %dpcc_22, label %exit [i32 0, label %jump_22_23_rl i32 1, label %jump_22_23_rr i32 2, label %jump_22_12_lr i32 3, label %jump_22_12_ll i32 4, label %jump_22_12_ll i32 5, label %jump_22_12_lr i32 6, label %jump_22_12_ul i32 7, label %jump_22_12_ur]
 jump_22_23_rl:
   br label %block_23
 jump_22_23_rr:
   br label %block_23
-jump_22_12_ul:
+jump_22_12_ll:
+  store i32 7, i32* %dpcc_ptr, align 4
+  br label %block_12
+jump_22_12_lr:
   store i32 6, i32* %dpcc_ptr, align 4
   br label %block_12
+jump_22_12_ul:
+  br label %block_12
 jump_22_12_ur:
-  store i32 7, i32* %dpcc_ptr, align 4
   br label %block_12
 
 block_23:
@@ -544,7 +563,13 @@ jump_23_12_ur:
 
 block_25:
   %dpcc_25 = load i32, i32* %dpcc_ptr, align 4
-  switch i32 %dpcc_25, label %exit [i32 0, label %jump_25_23_ll i32 1, label %jump_25_23_lr i32 2, label %jump_25_23_lr i32 3, label %jump_25_23_ll i32 4, label %jump_25_23_ll i32 5, label %jump_25_23_lr i32 6, label %jump_25_18_ul i32 7, label %jump_25_18_ur]
+  switch i32 %dpcc_25, label %exit [i32 0, label %jump_25_25_rl i32 1, label %jump_25_25_rr i32 2, label %jump_25_23_lr i32 3, label %jump_25_23_ll i32 4, label %jump_25_23_ll i32 5, label %jump_25_23_lr i32 6, label %jump_25_18_ul i32 7, label %jump_25_18_ur]
+jump_25_25_rl:
+  store i32 4, i32* %dpcc_ptr, align 4
+  br label %block_25
+jump_25_25_rr:
+  store i32 5, i32* %dpcc_ptr, align 4
+  br label %block_25
 jump_25_23_ll:
   store i32 4, i32* %dpcc_ptr, align 4
   br label %block_23

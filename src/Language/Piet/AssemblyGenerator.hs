@@ -30,18 +30,21 @@ import qualified LLVM.IRBuilder as IR
 generateAssembly :: SyntaxGraph -> AST.Module
 generateAssembly syntax = IR.buildModule "" $ do
   P.declareFunctions
-  _ <- IR.function "main" [] T.i32 $ \_ -> mainFunction $ (\(SyntaxGraph _ _ x) -> x) syntax  -- FIXME
+  _ <- IR.function "main" [] T.i32 $ \_ -> mainFunction syntax
   return ()
 
-mainFunction :: (MonadFix m, IR.MonadModuleBuilder m) => IntMap Block -> IR.IRBuilderT m ()
-mainFunction graph = mdo
+mainFunction :: (MonadFix m, IR.MonadModuleBuilder m) => SyntaxGraph -> IR.IRBuilderT m ()
+mainFunction EmptySyntaxGraph = do
+  _ <- IR.block `IR.named` "entry"
+  IR.ret $ int32 0
+mainFunction SyntaxGraph { getInitialBlockIndex = blockIndex, getInitialDPCC = dpcc, getBlockMap = blockMap } = mdo
   _ <- IR.block `IR.named` "entry"
   dpccPtr <- IR.alloca T.i32 Nothing 4 `IR.named` "dpcc_ptr"
-  IR.store dpccPtr 4 $ int32 0
+  IR.store dpccPtr 4 $ int32 $ dpccToInteger dpcc
 
-  IR.br $ fromMaybe exitLabel $ labelTable IM.!? 0
+  IR.br $ fromMaybe exitLabel $ labelTable IM.!? blockIndex
 
-  let blocks = IM.toAscList graph
+  let blocks = IM.toAscList blockMap
   labelTable <- IM.fromList <$> mapM (\(n, block) -> (n,) <$> step exitLabel labelTable dpccPtr n block) blocks
 
   exitLabel <- IR.block `IR.named` "exit"
@@ -63,9 +66,12 @@ step exitLabel labelTable dpccPtr index block = mdo
     let nextBlockIndex = getBlockIndex nextBlock
     let branchLabelName = stringToShort $ "jump_" ++ show index ++ "_" ++ show nextBlockIndex ++ "_" ++ showDPCC nextDPCC
     branchLabel <- IR.block `IR.named` branchLabelName
+
     let currentDPCCs = backwardDPCCTable M.! nextDPCC
-    when (currentDPCCs /= [nextDPCC]) $ IR.store dpccPtr 4 $ int32 $ dpccToInteger nextDPCC
+    let nextBlockDPCC = getDPCC nextBlock
+    when (currentDPCCs /= [nextBlockDPCC]) $ IR.store dpccPtr 4 $ int32 $ dpccToInteger nextBlockDPCC
     commandToLLVMInstruction (getCommand nextBlock) dpccPtr
+
     let nextLabel = labelTable IM.! nextBlockIndex  -- unsafe
     IR.br nextLabel
     return (currentDPCCs, branchLabel)
