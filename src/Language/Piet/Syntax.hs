@@ -4,6 +4,7 @@ module Language.Piet.Syntax
   , SyntaxGraph(..)
   , DirectionPointer(..)
   , CodelChooser(..)
+  , DPCC(..)
   , Command(..)
   , commandFromTransition
   , showCommand
@@ -21,7 +22,7 @@ import Language.Piet.Codel
 -- 'Block' is a map to a pair of
 -- a command which will be executed when moving into the next codel block
 -- and an index of the next codel block.
-newtype Block = Block { nextBlockTable :: Map (DirectionPointer, CodelChooser) (Command, Int) } deriving (Show, Eq)
+newtype Block = Block { nextBlockTable :: Map DPCC (Command, Int) } deriving (Show, Eq)
 
 -- | A representation of the syntax of Piet.
 --
@@ -30,6 +31,7 @@ newtype SyntaxGraph = SyntaxGraph { getSyntaxGraph :: IntMap Block } deriving (S
 
 data DirectionPointer = DPRight | DPDown | DPLeft | DPUp deriving (Show, Eq, Ord, Enum, Bounded)
 data CodelChooser = CCLeft | CCRight deriving (Show, Eq, Ord, Enum, Bounded)
+data DPCC = DPCC { getDP :: DirectionPointer, getCC :: CodelChooser} deriving (Show, Eq, Ord)
 
 data Command = NoOperation
              | Push Int
@@ -98,8 +100,8 @@ showCommand InChar      = "in (char)"
 showCommand OutNumber   = "out (number)"
 showCommand OutChar     = "out (char)"
 
-showDPCC :: (DirectionPointer, CodelChooser) -> String
-showDPCC (dp, cc) = [charDP dp, charCC cc] where
+showDPCC :: DPCC -> String
+showDPCC dpcc = [charDP $ getDP dpcc, charCC $ getCC dpcc] where
   charDP DPRight = 'r'
   charDP DPDown  = 'd'
   charDP DPLeft  = 'l'

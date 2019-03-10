@@ -15,14 +15,14 @@ main = hspec spec
 spec :: Spec
 spec = do
   let
-    rl = (DPRight, CCLeft)
-    rr = (DPRight, CCRight)
-    dl = (DPDown, CCLeft)
-    dr = (DPDown, CCRight)
-    ll = (DPLeft, CCLeft)
-    lr = (DPLeft, CCRight)
-    ul = (DPUp, CCLeft)
-    ur = (DPUp, CCRight)
+    rl = DPCC DPRight CCLeft
+    rr = DPCC DPRight CCRight
+    dl = DPCC DPDown CCLeft
+    dr = DPCC DPDown CCRight
+    ll = DPCC DPLeft CCLeft
+    lr = DPCC DPLeft CCRight
+    ul = DPCC DPUp CCLeft
+    ur = DPCC DPUp CCRight
   describe "dpccsToBackwardDPCCTable" $ do
     forM_
       [ ([], M.empty)

@@ -9,8 +9,6 @@ import qualified Data.Set as S
 import GHC.Exts
 import Language.Piet.Syntax
 
-type DPCC = (DirectionPointer, CodelChooser)
-
 -- | Get a map containing a key DPCC that references DPCCs which will be switched to the key in the next step.
 -- The first argument is possible DPCCs to move to next blocks.
 --
@@ -24,13 +22,16 @@ dpccsToBackwardDPCCTable possibleDPCCs = M.fromList $ nearestTableToBackwardTabl
 
 nearestDPCCTable :: [DPCC] -> [(DPCC, DPCC)]
 nearestDPCCTable possibleDPCCs = (id &&& nearestDPCC) <$> allDPCCs where
-  nearestDPCC (dp, cc) =
+  nearestDPCC dpcc =
     let
+      dp = getDP dpcc
+      cc = getCC dpcc
       nearestDP = nearestDPTable M.! dp
       nearestCC = toEnum $ (fromEnum cc + fromEnum nearestDP - fromEnum dp) `mod` 2
-    in if S.member (nearestDP, nearestCC) possibleDPCCSet
-       then (nearestDP, nearestCC)
-       else (nearestDP, cyclicSucc nearestCC)
+      nearestDPCCCandidate = DPCC { getDP = nearestDP, getCC = nearestCC }
+    in if S.member nearestDPCCCandidate possibleDPCCSet
+       then nearestDPCCCandidate
+       else DPCC { getDP = nearestDP, getCC = cyclicSucc nearestCC }
 
   nearestDPTable :: Map DirectionPointer DirectionPointer
   nearestDPTable = M.fromList $ go reversedAllDPs (cycle reversedPossibleDPs) (last reversedPossibleDPs) where
@@ -41,9 +42,9 @@ nearestDPCCTable possibleDPCCs = (id &&& nearestDPCC) <$> allDPCCs where
     reversedPossibleDPs = S.toDescList possibleDPSet
     reversedAllDPs = reverse [minBound .. maxBound]
 
-  allDPCCs = (,) <$> [minBound .. maxBound] <*> [minBound .. maxBound]
+  allDPCCs = DPCC <$> [minBound .. maxBound] <*> [minBound .. maxBound]
   possibleDPCCSet = S.fromList possibleDPCCs
-  possibleDPSet = S.map fst possibleDPCCSet
+  possibleDPSet = S.map getDP possibleDPCCSet
 
 cyclicSucc :: (Eq a, Enum a, Bounded a) => a -> a
 cyclicSucc x | x == maxBound = minBound

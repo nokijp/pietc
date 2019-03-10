@@ -71,8 +71,8 @@ step exitLabel labelTable dpccPtr index block = mdo
 
   return stepLabel
 
-dpccToInteger :: (DirectionPointer, CodelChooser) -> Integer
-dpccToInteger (dp, cc) = toInteger $ fromEnum dp * 2 + fromEnum cc
+dpccToInteger :: DPCC -> Integer
+dpccToInteger dpcc = toInteger $ fromEnum (getDP dpcc) * 2 + fromEnum (getCC dpcc)
 
 tableToList :: [([a], b)] -> [(a, b)]
 tableToList table = do

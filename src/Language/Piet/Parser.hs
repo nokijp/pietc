@@ -52,7 +52,7 @@ parseFilledImage (codelTable, blockTable) = parse' where
     blockCoords <- justOrThrow (MissingCodelIndexError blockIndex) $ blockTable IM.!? blockIndex
 
     let blockSize = length blockCoords
-    let nextBlockList = mapMaybe (\((dp, cc), pos) -> ((dp, cc),) <$> nextBlock codelTable dp pos blockSize) $ minMaxCoords blockCoords
+    let nextBlockList = mapMaybe (\(dpcc, pos) -> (dpcc,) <$> nextBlock codelTable (getDP dpcc) pos blockSize) $ minMaxCoords blockCoords
     let block = Block $ M.fromList nextBlockList
     modify $ IM.insert blockIndex block
 
@@ -87,16 +87,16 @@ move DPUp    = second pred
 {-# ANN minMaxCoords "HLint: ignore Redundant id" #-}
 {-# ANN minMaxCoords "HLint: ignore Use first" #-}
 {-# ANN minMaxCoords "HLint: ignore Use second" #-}
-minMaxCoords :: [(Int, Int)] -> [((DirectionPointer, CodelChooser), (Int, Int))]
+minMaxCoords :: [(Int, Int)] -> [(DPCC, (Int, Int))]
 minMaxCoords positions = fmap (`maximumOn` positions) <$> fs where
-  fs = [ ((DPRight, CCLeft),  (id     *** negate) . id  )
-       , ((DPRight, CCRight), (id     *** id    ) . id  )
-       , ((DPDown,  CCLeft),  (id     *** id    ) . swap)
-       , ((DPDown,  CCRight), (id     *** negate) . swap)
-       , ((DPLeft,  CCLeft),  (negate *** id    ) . id  )
-       , ((DPLeft,  CCRight), (negate *** negate) . id  )
-       , ((DPUp,    CCLeft),  (negate *** negate) . swap)
-       , ((DPUp,    CCRight), (negate *** id    ) . swap)
+  fs = [ (DPCC { getDP = DPRight, getCC = CCLeft },  (id     *** negate) . id  )
+       , (DPCC { getDP = DPRight, getCC = CCRight }, (id     *** id    ) . id  )
+       , (DPCC { getDP = DPDown,  getCC = CCLeft },  (id     *** id    ) . swap)
+       , (DPCC { getDP = DPDown,  getCC = CCRight }, (id     *** negate) . swap)
+       , (DPCC { getDP = DPLeft,  getCC = CCLeft },  (negate *** id    ) . id  )
+       , (DPCC { getDP = DPLeft,  getCC = CCRight }, (negate *** negate) . id  )
+       , (DPCC { getDP = DPUp,    getCC = CCLeft },  (negate *** negate) . swap)
+       , (DPCC { getDP = DPUp,    getCC = CCRight }, (negate *** id    ) . swap)
        ]
 
 maximumOn :: Ord b => (a -> b) -> [a] -> a
