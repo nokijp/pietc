@@ -42,7 +42,7 @@ parseFilledImage (codelTable, blockTable) = searchInitialBlock >>= parseFrom whe
   parseFrom Nothing = return EmptySyntaxGraph
   parseFrom (Just (initialBlockIndex, initialDPCC)) = do
     blockMap <- execStateT (parseState initialBlockIndex) IM.empty
-    return SyntaxGraph { getInitialCodelIndex = initialBlockIndex
+    return SyntaxGraph { getInitialBlockIndex = initialBlockIndex
                        , getInitialDPCC = initialDPCC
                        , getBlockMap = blockMap
                        }

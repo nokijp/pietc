@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Language.Piet.SyntaxVisualizerSpec
@@ -5,6 +6,7 @@ module Language.Piet.SyntaxVisualizerSpec
   , spec
   ) where
 
+import Control.Monad
 import qualified Data.IntMap as IM
 import qualified Data.Map as M
 import Data.Text (Text)
@@ -20,7 +22,13 @@ main = hspec spec
 spec :: Spec
 spec = do
   describe "syntaxToDOT" $
-    it "convert a syntax graph to a DOT script" $ syntaxToDOT complexGraph `shouldBe` complexDOT
+    forM_
+      [ ("an empty graph", EmptySyntaxGraph, "digraph {}")
+      , ("a complex graph", complexGraph, complexDOT)
+      ] $ \(name, graph, dot) ->
+        context ("when given " ++ name) $
+          it "convert a syntax graph to a DOT script" $ syntaxToDOT graph `shouldBe` dot
+
 
 complexGraph :: SyntaxGraph
 complexGraph = SyntaxGraph 0 rl $ IM.fromList
@@ -93,6 +101,7 @@ complexGraph = SyntaxGraph 0 rl $ IM.fromList
     , Block $ M.fromList [ (rl, NextBlock Pointer rl 9)
                          , (rr, NextBlock Pointer rr 9)
                          , (dl, NextBlock NoOperation dl 23)
+                         , (dr, NextBlock NoOperation ll 22)
                          , (ul, NextBlock Add ul 6)
                          , (ur, NextBlock Add ur 6)
                          ]
@@ -109,6 +118,10 @@ complexGraph = SyntaxGraph 0 rl $ IM.fromList
   , ( 17
     , Block $ M.fromList [ (rl, NextBlock (Push 1) rl 18)
                          , (rr, NextBlock (Push 1) rr 18)
+                         , (dl, NextBlock NoOperation lr 23)
+                         , (dr, NextBlock NoOperation ll 23)
+                         , (ll, NextBlock NoOperation ur 12)
+                         , (lr, NextBlock NoOperation ul 12)
                          , (ul, NextBlock Pop ul 9)
                          , (ur, NextBlock Pop ur 9)
                          ]
@@ -124,6 +137,8 @@ complexGraph = SyntaxGraph 0 rl $ IM.fromList
   , ( 22
     , Block $ M.fromList [ (rl, NextBlock NoOperation rl 23)
                          , (rr, NextBlock NoOperation rr 23)
+                         , (ll, NextBlock NoOperation ur 12)
+                         , (lr, NextBlock NoOperation ul 12)
                          , (ul, NextBlock NoOperation ul 12)
                          , (ur, NextBlock NoOperation ur 12)
                          ]
@@ -138,7 +153,9 @@ complexGraph = SyntaxGraph 0 rl $ IM.fromList
                          ]
     )
   , ( 25
-    , Block $ M.fromList [ (ll, NextBlock NoOperation ll 23)
+    , Block $ M.fromList [ (rl, NextBlock NoOperation ll 25)
+                         , (rr, NextBlock NoOperation lr 25)
+                         , (ll, NextBlock NoOperation ll 23)
                          , (lr, NextBlock NoOperation lr 23)
                          , (ul, NextBlock Duplicate ul 18)
                          , (ur, NextBlock Duplicate ur 18)
@@ -152,7 +169,7 @@ complexDOT = [q|digraph {
   node [label="" shape=point color=white]
   start
   node [label="" shape=circle color=black]
-  start -> 0
+  start -> 0 [label="rl"]
   0 -> 1 [label="rl: pop"]
   0 -> 1 [label="rr: pop"]
   0 -> 1 [label="dl: pop"]
@@ -197,6 +214,7 @@ complexDOT = [q|digraph {
   12 -> 9 [label="rl: pointer"]
   12 -> 9 [label="rr: pointer"]
   12 -> 23 [label="dl: noop"]
+  12 -> 22 [label="dr: noop -> ll"]
   12 -> 6 [label="ul: add"]
   12 -> 6 [label="ur: add"]
   15 -> 18 [label="dl: duplicate"]
@@ -207,6 +225,10 @@ complexDOT = [q|digraph {
   15 -> 9 [label="ur: roll"]
   17 -> 18 [label="rl: push 1"]
   17 -> 18 [label="rr: push 1"]
+  17 -> 23 [label="dl: noop -> lr"]
+  17 -> 23 [label="dr: noop -> ll"]
+  17 -> 12 [label="ll: noop -> ur"]
+  17 -> 12 [label="lr: noop -> ul"]
   17 -> 9 [label="ul: pop"]
   17 -> 9 [label="ur: pop"]
   18 -> 25 [label="dl: divide"]
@@ -216,6 +238,8 @@ complexDOT = [q|digraph {
   18 -> 15 [label="ul: divide"]
   22 -> 23 [label="rl: noop"]
   22 -> 23 [label="rr: noop"]
+  22 -> 12 [label="ll: noop -> ur"]
+  22 -> 12 [label="lr: noop -> ul"]
   22 -> 12 [label="ul: noop"]
   22 -> 12 [label="ur: noop"]
   23 -> 25 [label="rl: noop"]
@@ -224,6 +248,8 @@ complexDOT = [q|digraph {
   23 -> 22 [label="lr: noop"]
   23 -> 12 [label="ul: noop"]
   23 -> 12 [label="ur: noop"]
+  25 -> 25 [label="rl: noop -> ll"]
+  25 -> 25 [label="rr: noop -> lr"]
   25 -> 23 [label="ll: noop"]
   25 -> 23 [label="lr: noop"]
   25 -> 18 [label="ul: duplicate"]
