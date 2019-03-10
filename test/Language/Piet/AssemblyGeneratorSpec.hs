@@ -13,6 +13,7 @@ import qualified Data.Text.Lazy as T
 import Language.Piet.AssemblyGenerator
 import Language.Piet.Syntax
 import LLVM.Pretty
+import SyntaxTestHelper
 import Test.Hspec
 import Text.InterpolatedString.Perl6
 
@@ -113,123 +114,123 @@ exit:
 
 complexGraph :: SyntaxGraph
 complexGraph = SyntaxGraph $ IM.fromList [ ( 0
-                                           , Block $ M.fromList [ let dpcc = DPCC DPRight CCLeft in (dpcc, NextBlock Pop dpcc 1)
-                                                                , let dpcc = DPCC DPRight CCRight in (dpcc, NextBlock Pop dpcc 1)
-                                                                , let dpcc = DPCC DPDown CCLeft in (dpcc, NextBlock Pop dpcc 1)
-                                                                , let dpcc = DPCC DPDown CCRight in (dpcc, NextBlock (Push 5) dpcc 6)
+                                           , Block $ M.fromList [ (rl, NextBlock Pop rl 1)
+                                                                , (rr, NextBlock Pop rr 1)
+                                                                , (dl, NextBlock Pop dl 1)
+                                                                , (dr, NextBlock (Push 5) dr 6)
                                                                 ]
                                            )
                                          , ( 1
-                                           , Block $ M.fromList [ let dpcc = DPCC DPRight CCLeft in (dpcc, NextBlock NoOperation dpcc 7)
-                                                                , let dpcc = DPCC DPRight CCRight in (dpcc, NextBlock NoOperation dpcc 7)
-                                                                , let dpcc = DPCC DPDown CCLeft in (dpcc, NextBlock Divide dpcc 9)
-                                                                , let dpcc = DPCC DPDown CCRight in (dpcc, NextBlock Divide dpcc 9)
-                                                                , let dpcc = DPCC DPLeft CCLeft in (dpcc, NextBlock Pop dpcc 6)
-                                                                , let dpcc = DPCC DPLeft CCRight in (dpcc, NextBlock Pop dpcc 6)
+                                           , Block $ M.fromList [ (rl, NextBlock NoOperation rl 7)
+                                                                , (rr, NextBlock NoOperation rr 7)
+                                                                , (dl, NextBlock Divide dl 9)
+                                                                , (dr, NextBlock Divide dr 9)
+                                                                , (ll, NextBlock Pop ll 6)
+                                                                , (lr, NextBlock Pop lr 6)
                                                                 ]
                                            )
                                          , ( 2
-                                           , Block $ M.fromList [ let dpcc = DPCC DPRight CCLeft in (dpcc, NextBlock NoOperation dpcc 4)
-                                                                , let dpcc = DPCC DPRight CCRight in (dpcc, NextBlock NoOperation dpcc 4)
-                                                                , let dpcc = DPCC DPDown CCLeft in (dpcc, NextBlock NoOperation dpcc 9)
-                                                                , let dpcc = DPCC DPDown CCRight in (dpcc, NextBlock Roll dpcc 1)
-                                                                , let dpcc = DPCC DPLeft CCLeft in (dpcc, NextBlock Roll dpcc 1)
-                                                                , let dpcc = DPCC DPLeft CCRight in (dpcc, NextBlock Roll dpcc 1)
+                                           , Block $ M.fromList [ (rl, NextBlock NoOperation rl 4)
+                                                                , (rr, NextBlock NoOperation rr 4)
+                                                                , (dl, NextBlock NoOperation dl 9)
+                                                                , (dr, NextBlock Roll dr 1)
+                                                                , (ll, NextBlock Roll ll 1)
+                                                                , (lr, NextBlock Roll lr 1)
                                                                 ]
                                            )
                                          , ( 4
-                                           , Block $ M.fromList [ let dpcc = DPCC DPRight CCLeft in (dpcc, NextBlock OutChar dpcc 5)
-                                                                , let dpcc = DPCC DPRight CCRight in (dpcc, NextBlock OutChar dpcc 5)
-                                                                , let dpcc = DPCC DPDown CCLeft in (dpcc, NextBlock Subtract dpcc 7)
-                                                                , let dpcc = DPCC DPDown CCRight in (dpcc, NextBlock NoOperation dpcc 7)
-                                                                , let dpcc = DPCC DPLeft CCLeft in (dpcc, NextBlock NoOperation dpcc 2)
-                                                                , let dpcc = DPCC DPLeft CCRight in (dpcc, NextBlock NoOperation dpcc 2)
+                                           , Block $ M.fromList [ (rl, NextBlock OutChar rl 5)
+                                                                , (rr, NextBlock OutChar rr 5)
+                                                                , (dl, NextBlock Subtract dl 7)
+                                                                , (dr, NextBlock NoOperation dr 7)
+                                                                , (ll, NextBlock NoOperation ll 2)
+                                                                , (lr, NextBlock NoOperation lr 2)
                                                                 ]
                                            )
                                          , ( 5
-                                           , Block $ M.fromList [ let dpcc = DPCC DPDown CCRight in (dpcc, NextBlock Not dpcc 7)
-                                                                , let dpcc = DPCC DPLeft CCLeft in (dpcc, NextBlock Subtract dpcc 4)
-                                                                , let dpcc = DPCC DPLeft CCRight in (dpcc, NextBlock Subtract dpcc 4)
+                                           , Block $ M.fromList [ (dr, NextBlock Not dr 7)
+                                                                , (ll, NextBlock Subtract ll 4)
+                                                                , (lr, NextBlock Subtract lr 4)
                                                                 ]
                                            )
                                          , ( 6
-                                           , Block $ M.fromList [ let dpcc = DPCC DPRight CCLeft in (dpcc, NextBlock Mod dpcc 9)
-                                                                , let dpcc = DPCC DPRight CCRight in (dpcc, NextBlock Mod dpcc 9)
-                                                                , let dpcc = DPCC DPDown CCLeft in (dpcc, NextBlock Mod dpcc 9)
-                                                                , let dpcc = DPCC DPDown CCRight in (dpcc, NextBlock InChar dpcc 12)
-                                                                , let dpcc = DPCC DPUp CCLeft in (dpcc, NextBlock Pop dpcc 0)
-                                                                , let dpcc = DPCC DPUp CCRight in (dpcc, NextBlock Pop dpcc 0)
+                                           , Block $ M.fromList [ (rl, NextBlock Mod rl 9)
+                                                                , (rr, NextBlock Mod rr 9)
+                                                                , (dl, NextBlock Mod dl 9)
+                                                                , (dr, NextBlock InChar dr 12)
+                                                                , (ul, NextBlock Pop ul 0)
+                                                                , (ur, NextBlock Pop ur 0)
                                                                 ]
                                            )
                                          , ( 7
-                                           , Block $ M.fromList [ let dpcc = DPCC DPLeft CCLeft in (dpcc, NextBlock NoOperation dpcc 9)
-                                                                , let dpcc = DPCC DPLeft CCRight in (dpcc, NextBlock NoOperation dpcc 9)
-                                                                , let dpcc = DPCC DPUp CCLeft in (dpcc, NextBlock OutChar dpcc 4)
-                                                                , let dpcc = DPCC DPUp CCRight in (dpcc, NextBlock Roll dpcc 5)
+                                           , Block $ M.fromList [ (ll, NextBlock NoOperation ll 9)
+                                                                , (lr, NextBlock NoOperation lr 9)
+                                                                , (ul, NextBlock OutChar ul 4)
+                                                                , (ur, NextBlock Roll ur 5)
                                                                 ]
                                            )
                                          , ( 9
-                                           , Block $ M.fromList [ let dpcc = DPCC DPDown CCLeft in (dpcc, NextBlock (Push 16) dpcc 17)
-                                                                , let dpcc = DPCC DPDown CCRight in (dpcc, NextBlock (Push 16) dpcc 17)
-                                                                , let dpcc = DPCC DPLeft CCLeft in (dpcc, NextBlock Switch dpcc 12)
-                                                                , let dpcc = DPCC DPLeft CCRight in (dpcc, NextBlock Switch dpcc 12)
-                                                                , let dpcc = DPCC DPUp CCLeft in (dpcc, NextBlock Duplicate dpcc 1)
-                                                                , let dpcc = DPCC DPUp CCRight in (dpcc, NextBlock Duplicate dpcc 1)
+                                           , Block $ M.fromList [ (dl, NextBlock (Push 16) dl 17)
+                                                                , (dr, NextBlock (Push 16) dr 17)
+                                                                , (ll, NextBlock Switch ll 12)
+                                                                , (lr, NextBlock Switch lr 12)
+                                                                , (ul, NextBlock Duplicate ul 1)
+                                                                , (ur, NextBlock Duplicate ur 1)
                                                                 ]
                                            )
                                          , ( 12
-                                           , Block $ M.fromList [ let dpcc = DPCC DPRight CCLeft in (dpcc, NextBlock Pointer dpcc 9)
-                                                                , let dpcc = DPCC DPRight CCRight in (dpcc, NextBlock Pointer dpcc 9)
-                                                                , let dpcc = DPCC DPDown CCLeft in (dpcc, NextBlock NoOperation dpcc 23)
-                                                                , let dpcc = DPCC DPUp CCLeft in (dpcc, NextBlock Add dpcc 6)
-                                                                , let dpcc = DPCC DPUp CCRight in (dpcc, NextBlock Add dpcc 6)
+                                           , Block $ M.fromList [ (rl, NextBlock Pointer rl 9)
+                                                                , (rr, NextBlock Pointer rr 9)
+                                                                , (dl, NextBlock NoOperation dl 23)
+                                                                , (ul, NextBlock Add ul 6)
+                                                                , (ur, NextBlock Add ur 6)
                                                                 ]
                                            )
                                          , ( 15
-                                           , Block $ M.fromList [ let dpcc = DPCC DPDown CCLeft in (dpcc, NextBlock Duplicate dpcc 18)
-                                                                , let dpcc = DPCC DPDown CCRight in (dpcc, NextBlock Duplicate dpcc 18)
-                                                                , let dpcc = DPCC DPLeft CCLeft in (dpcc, NextBlock Roll dpcc 9)
-                                                                , let dpcc = DPCC DPLeft CCRight in (dpcc, NextBlock Roll dpcc 9)
-                                                                , let dpcc = DPCC DPUp CCLeft in (dpcc, NextBlock Roll dpcc 9)
-                                                                , let dpcc = DPCC DPUp CCRight in (dpcc, NextBlock Roll dpcc 9)
+                                           , Block $ M.fromList [ (dl, NextBlock Duplicate dl 18)
+                                                                , (dr, NextBlock Duplicate dr 18)
+                                                                , (ll, NextBlock Roll ll 9)
+                                                                , (lr, NextBlock Roll lr 9)
+                                                                , (ul, NextBlock Roll ul 9)
+                                                                , (ur, NextBlock Roll ur 9)
                                                                 ]
                                            )
                                          , ( 17
-                                           , Block $ M.fromList [ let dpcc = DPCC DPRight CCLeft in (dpcc, NextBlock (Push 1) dpcc 18)
-                                                                , let dpcc = DPCC DPRight CCRight in (dpcc, NextBlock (Push 1) dpcc 18)
-                                                                , let dpcc = DPCC DPUp CCLeft in (dpcc, NextBlock Pop dpcc 9)
-                                                                , let dpcc = DPCC DPUp CCRight in (dpcc, NextBlock Pop dpcc 9)
+                                           , Block $ M.fromList [ (rl, NextBlock (Push 1) rl 18)
+                                                                , (rr, NextBlock (Push 1) rr 18)
+                                                                , (ul, NextBlock Pop ul 9)
+                                                                , (ur, NextBlock Pop ur 9)
                                                                 ]
                                            )
                                          , ( 18
-                                           , Block $ M.fromList [ let dpcc = DPCC DPDown CCLeft in (dpcc, NextBlock Divide dpcc 25)
-                                                                , let dpcc = DPCC DPDown CCRight in (dpcc, NextBlock Divide dpcc 25)
-                                                                , let dpcc = DPCC DPLeft CCLeft in (dpcc, NextBlock Pop dpcc 17)
-                                                                , let dpcc = DPCC DPLeft CCRight in (dpcc, NextBlock Pop dpcc 17)
-                                                                , let dpcc = DPCC DPUp CCLeft in (dpcc, NextBlock Divide dpcc 15)
+                                           , Block $ M.fromList [ (dl, NextBlock Divide dl 25)
+                                                                , (dr, NextBlock Divide dr 25)
+                                                                , (ll, NextBlock Pop ll 17)
+                                                                , (lr, NextBlock Pop lr 17)
+                                                                , (ul, NextBlock Divide ul 15)
                                                                 ]
                                            )
                                          , ( 22
-                                           , Block $ M.fromList [ let dpcc = DPCC DPRight CCLeft in (dpcc, NextBlock NoOperation dpcc 23)
-                                                                , let dpcc = DPCC DPRight CCRight in (dpcc, NextBlock NoOperation dpcc 23)
-                                                                , let dpcc = DPCC DPUp CCLeft in (dpcc, NextBlock NoOperation dpcc 12)
-                                                                , let dpcc = DPCC DPUp CCRight in (dpcc, NextBlock NoOperation dpcc 12)
+                                           , Block $ M.fromList [ (rl, NextBlock NoOperation rl 23)
+                                                                , (rr, NextBlock NoOperation rr 23)
+                                                                , (ul, NextBlock NoOperation ul 12)
+                                                                , (ur, NextBlock NoOperation ur 12)
                                                                 ]
                                            )
                                          , ( 23
-                                           , Block $ M.fromList [ let dpcc = DPCC DPRight CCLeft in (dpcc, NextBlock NoOperation dpcc 25)
-                                                                , let dpcc = DPCC DPRight CCRight in (dpcc, NextBlock NoOperation dpcc 25)
-                                                                , let dpcc = DPCC DPLeft CCLeft in (dpcc, NextBlock NoOperation dpcc 22)
-                                                                , let dpcc = DPCC DPLeft CCRight in (dpcc, NextBlock NoOperation dpcc 22)
-                                                                , let dpcc = DPCC DPUp CCLeft in (dpcc, NextBlock NoOperation dpcc 12)
-                                                                , let dpcc = DPCC DPUp CCRight in (dpcc, NextBlock NoOperation dpcc 12)
+                                           , Block $ M.fromList [ (rl, NextBlock NoOperation rl 25)
+                                                                , (rr, NextBlock NoOperation rr 25)
+                                                                , (ll, NextBlock NoOperation ll 22)
+                                                                , (lr, NextBlock NoOperation lr 22)
+                                                                , (ul, NextBlock NoOperation ul 12)
+                                                                , (ur, NextBlock NoOperation ur 12)
                                                                 ]
                                            )
                                          , ( 25
-                                           , Block $ M.fromList [ let dpcc = DPCC DPLeft CCLeft in (dpcc, NextBlock NoOperation dpcc 23)
-                                                                , let dpcc = DPCC DPLeft CCRight in (dpcc, NextBlock NoOperation dpcc 23)
-                                                                , let dpcc = DPCC DPUp CCLeft in (dpcc, NextBlock Duplicate dpcc 18)
-                                                                , let dpcc = DPCC DPUp CCRight in (dpcc, NextBlock Duplicate dpcc 18)
+                                           , Block $ M.fromList [ (ll, NextBlock NoOperation ll 23)
+                                                                , (lr, NextBlock NoOperation lr 23)
+                                                                , (ul, NextBlock Duplicate ul 18)
+                                                                , (ur, NextBlock Duplicate ur 18)
                                                                 ]
                                            )
                                          ]

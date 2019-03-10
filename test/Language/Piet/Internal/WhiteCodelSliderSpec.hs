@@ -23,17 +23,17 @@ spec :: Spec
 spec = do
   describe "slideOnWhiteBlock" $ do
     forM_
-      [ ("when given a single codel image", singleCodelImage, (0, 0), rl, Nothing)
-      , ("when given a image which has a loop", oneLoopImage, (1, 1), rl, Just $ NextBlock NoOperation ur 2)
-      , ("when given a image which has a loop", oneLoopImage, (1, 1), rr, Just $ NextBlock NoOperation ul 2)
-      , ("-------------1", gammaImage, (1, 1), rl, Just $ NextBlock NoOperation rl 1)
-      , ("-------------2", gammaImage, (1, 4), rl, Just $ NextBlock NoOperation ll 0)
-      , ("-------------3", spiralImage, (1, 1), rl, Just $ NextBlock NoOperation rl 4)
-      , ("-------------4", stuckImage1, (1, 1), rl, Nothing)
-      , ("-------------5", stuckImage2, (1, 1), rl, Nothing)
-      , ("-------------6", stuckImage3, (1, 1), rl, Nothing)
+      [ ("singleCodelImage (0, 0) rl", singleCodelImage, (0, 0), rl, Nothing)
+      , ("oneLoopImage (1, 1) rl", oneLoopImage, (1, 1), rl, Just $ NextBlock NoOperation ur 2)
+      , ("oneLoopImage (1, 1) rr", oneLoopImage, (1, 1), rr, Just $ NextBlock NoOperation ul 2)
+      , ("gammaImage (1, 1) rl", gammaImage, (1, 1), rl, Just $ NextBlock NoOperation rl 1)
+      , ("gammaImage (1, 4) rl", gammaImage, (1, 4), rl, Just $ NextBlock NoOperation ll 0)
+      , ("spiralImage (1, 1) rl", spiralImage, (1, 1), rl, Just $ NextBlock NoOperation rl 4)
+      , ("stuckImage1 (1, 1) rl", stuckImage1, (1, 1), rl, Nothing)
+      , ("stuckImage2 (1, 1) rl", stuckImage2, (1, 1), rl, Nothing)
+      , ("stuckImage3 (1, 1) rl", stuckImage3, (1, 1), rl, Nothing)
       ] $ \(name, image, initialPosition, initialDPCC, expected) ->
-        context name $
+        context ("when given " ++ name) $
           it "slide and return the next codel" $
             slideOnWhiteBlock image initialPosition initialDPCC `shouldBe` expected
 
