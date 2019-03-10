@@ -2,6 +2,7 @@
 module Language.Piet.Syntax
   ( Block(..)
   , SyntaxGraph(..)
+  , NextBlock(..)
   , DirectionPointer(..)
   , CodelChooser(..)
   , DPCC(..)
@@ -18,11 +19,14 @@ import qualified Data.Vector.Generic as V
 import Language.Piet.Codel
 
 -- | A representation of a codel block.
---
--- 'Block' is a map to a pair of
--- a command which will be executed when moving into the next codel block
--- and an index of the next codel block.
-newtype Block = Block { nextBlockTable :: Map DPCC (Command, Int) } deriving (Show, Eq)
+-- This has information how to move into the next codel block.
+newtype Block = Block { nextBlockTable :: Map DPCC NextBlock } deriving (Show, Eq)
+
+-- | A data type which contains information about a move to the next block.
+data NextBlock = NextBlock { getCommand :: Command  -- ^ The command which will be executed when moving into the next codel block.
+                           , getDPCC :: DPCC  -- ^ The DP and CC which will be used in the next codel block.
+                           , getBlockIndex :: Int  -- ^ The index of the next codel block.
+                           } deriving (Show, Eq)
 
 -- | A representation of the syntax of Piet.
 --

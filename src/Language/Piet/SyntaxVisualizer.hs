@@ -28,8 +28,17 @@ syntaxToDOT graph = T.intercalate "\n" [ "digraph {"
 dotLines :: Text -> SyntaxGraph -> [Text]
 dotLines indent graph = do
   (from, block) <- IM.toAscList $ getSyntaxGraph graph
-  (dpcc, (command, to)) <- M.toAscList $ nextBlockTable block
-  return $ T.concat [indent, showText from, " -> ", showText to, " [label=\"", T.pack $ showDPCC dpcc, ": ", T.pack $ showCommand command, "\"]"]
+  (dpcc, nextBlock) <- M.toAscList $ nextBlockTable block
+  return $ T.concat [ indent
+                    , showText from
+                    , " -> "
+                    , showText $ getBlockIndex nextBlock
+                    , " [label=\""
+                    , T.pack $ showDPCC dpcc
+                    , ": "
+                    , T.pack $ showCommand $ getCommand nextBlock
+                    , "\"]"
+                    ]
 
 showText :: Show a => a -> Text
 showText = T.pack . show

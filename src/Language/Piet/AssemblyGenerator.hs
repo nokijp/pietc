@@ -59,12 +59,13 @@ step exitLabel labelTable dpccPtr index block = mdo
 
   let blockTable = M.toAscList $ nextBlockTable block
   let backwardDPCCTable = dpccsToBackwardDPCCTable $ fst <$> blockTable
-  switchLabelTable <- forM blockTable $ \(nextDPCC, (command, nextBlockIndex)) -> do
+  switchLabelTable <- forM blockTable $ \(nextDPCC, nextBlock) -> do
+    let nextBlockIndex = getBlockIndex nextBlock
     let branchLabelName = stringToShort $ "jump_" ++ show index ++ "_" ++ show nextBlockIndex ++ "_" ++ showDPCC nextDPCC
     branchLabel <- IR.block `IR.named` branchLabelName
     let currentDPCCs = backwardDPCCTable M.! nextDPCC
     when (currentDPCCs /= [nextDPCC]) $ IR.store dpccPtr 4 $ int32 $ dpccToInteger nextDPCC
-    commandToLLVMInstruction command dpccPtr
+    commandToLLVMInstruction (getCommand nextBlock) dpccPtr
     let nextLabel = labelTable IM.! nextBlockIndex  -- unsafe
     IR.br nextLabel
     return (currentDPCCs, branchLabel)

@@ -52,29 +52,30 @@ parseFilledImage (codelTable, blockTable) = parse' where
     blockCoords <- justOrThrow (MissingCodelIndexError blockIndex) $ blockTable IM.!? blockIndex
 
     let blockSize = length blockCoords
-    let nextBlockList = mapMaybe (\(dpcc, pos) -> (dpcc,) <$> nextBlock codelTable (getDP dpcc) pos blockSize) $ minMaxCoords blockCoords
+    let nextBlockList = mapMaybe (\(dpcc, pos) -> (dpcc,) <$> nextBlock codelTable dpcc pos blockSize) $ minMaxCoords blockCoords
     let block = Block $ M.fromList nextBlockList
     modify $ IM.insert blockIndex block
 
     visitedIndices <- IM.keysSet <$> get
-    let nextBlockIndices = snd . snd <$> nextBlockList
+    let nextBlockIndices = getBlockIndex . snd <$> nextBlockList
     let unvisitedBlockIndices = filter (`IS.notMember` visitedIndices) nextBlockIndices
     mapM_ parseState unvisitedBlockIndices
 
-nextBlock :: Vector (Vector (Codel, Int)) -> DirectionPointer -> (Int, Int) -> Int -> Maybe (Command, Int)
-nextBlock codelTable dp (x, y) blockSize = nextBlock' where
-  nextBlock' :: Maybe (Command, Int)
+nextBlock :: Vector (Vector (Codel, Int)) -> DPCC -> (Int, Int) -> Int -> Maybe NextBlock
+nextBlock codelTable dpcc (x, y) blockSize = nextBlock' where
+  nextBlock' :: Maybe NextBlock
   nextBlock' = do
     (AchromaticCodel currentHue currentLightness, _) <- codelTable V.!? y >>= (V.!? x)
     searchNext 0 (currentHue, currentLightness) (x, y)
 
-  searchNext :: Int -> (Hue, Lightness) -> (Int, Int) -> Maybe (Command, Int)
+  searchNext :: Int -> (Hue, Lightness) -> (Int, Int) -> Maybe NextBlock
   searchNext step currentHueAndLightness position = do
-    let (nextX, nextY) = move dp position
+    let (nextX, nextY) = move (getDP dpcc) position
     (nextCodel, blockIndex) <- codelTable V.!? nextY >>= (V.!? nextX)
     case nextCodel of
       AchromaticCodel nextHue nextLightness ->
-        Just (if step == 0 then commandFromTransition currentHueAndLightness (nextHue, nextLightness) blockSize else NoOperation, blockIndex)
+        let command = if step == 0 then commandFromTransition currentHueAndLightness (nextHue, nextLightness) blockSize else NoOperation
+        in Just $ NextBlock { getCommand = command, getDPCC = dpcc, getBlockIndex = blockIndex }
       WhiteCodel -> searchNext (step + 1) currentHueAndLightness (nextX, nextY)
       BlackCodel -> Nothing
 
