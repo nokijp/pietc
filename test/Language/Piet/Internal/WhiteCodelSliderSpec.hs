@@ -28,6 +28,38 @@ spec = do
       , ("oneLoopImage (1, 1) rr", oneLoopImage, (1, 1), rr, Just $ NextBlock NoOperation ul 2)
       , ("gammaImage (1, 1) rl", gammaImage, (1, 1), rl, Just $ NextBlock NoOperation rl 1)
       , ("gammaImage (1, 4) rl", gammaImage, (1, 4), rl, Just $ NextBlock NoOperation ll 0)
+      , ("crossShapedImage (2, 1) rl", crossShapedImage, (2, 1), rl, Just $ NextBlock NoOperation dr 5)
+      , ("crossShapedImage (2, 1) rr", crossShapedImage, (2, 1), rr, Just $ NextBlock NoOperation dl 5)
+      , ("crossShapedImage (2, 1) dl", crossShapedImage, (2, 1), dl, Just $ NextBlock NoOperation dl 5)
+      , ("crossShapedImage (2, 1) dr", crossShapedImage, (2, 1), dr, Just $ NextBlock NoOperation dr 5)
+      , ("crossShapedImage (2, 1) ll", crossShapedImage, (2, 1), ll, Just $ NextBlock NoOperation dr 5)
+      , ("crossShapedImage (2, 1) lr", crossShapedImage, (2, 1), lr, Just $ NextBlock NoOperation dl 5)
+      , ("crossShapedImage (2, 1) ul", crossShapedImage, (2, 1), ul, Just $ NextBlock NoOperation dl 5)
+      , ("crossShapedImage (2, 1) ur", crossShapedImage, (2, 1), ur, Just $ NextBlock NoOperation dr 5)
+      , ("crossShapedImage (1, 2) rl", crossShapedImage, (1, 2), rl, Just $ NextBlock NoOperation rl 5)
+      , ("crossShapedImage (1, 2) rr", crossShapedImage, (1, 2), rr, Just $ NextBlock NoOperation rr 5)
+      , ("crossShapedImage (1, 2) dl", crossShapedImage, (1, 2), dl, Just $ NextBlock NoOperation rr 5)
+      , ("crossShapedImage (1, 2) dr", crossShapedImage, (1, 2), dr, Just $ NextBlock NoOperation rl 5)
+      , ("crossShapedImage (1, 2) ll", crossShapedImage, (1, 2), ll, Just $ NextBlock NoOperation rl 5)
+      , ("crossShapedImage (1, 2) lr", crossShapedImage, (1, 2), lr, Just $ NextBlock NoOperation rr 5)
+      , ("crossShapedImage (1, 2) ul", crossShapedImage, (1, 2), ul, Just $ NextBlock NoOperation rr 5)
+      , ("crossShapedImage (1, 2) ur", crossShapedImage, (1, 2), ur, Just $ NextBlock NoOperation rl 5)
+      , ("crossShapedImage (3, 2) rl", crossShapedImage, (3, 2), rl, Just $ NextBlock NoOperation ll 5)
+      , ("crossShapedImage (3, 2) rr", crossShapedImage, (3, 2), rr, Just $ NextBlock NoOperation lr 5)
+      , ("crossShapedImage (3, 2) dl", crossShapedImage, (3, 2), dl, Just $ NextBlock NoOperation lr 5)
+      , ("crossShapedImage (3, 2) dr", crossShapedImage, (3, 2), dr, Just $ NextBlock NoOperation ll 5)
+      , ("crossShapedImage (3, 2) ll", crossShapedImage, (3, 2), ll, Just $ NextBlock NoOperation ll 5)
+      , ("crossShapedImage (3, 2) lr", crossShapedImage, (3, 2), lr, Just $ NextBlock NoOperation lr 5)
+      , ("crossShapedImage (3, 2) ul", crossShapedImage, (3, 2), ul, Just $ NextBlock NoOperation lr 5)
+      , ("crossShapedImage (3, 2) ur", crossShapedImage, (3, 2), ur, Just $ NextBlock NoOperation ll 5)
+      , ("crossShapedImage (2, 3) rl", crossShapedImage, (2, 3), rl, Just $ NextBlock NoOperation ur 5)
+      , ("crossShapedImage (2, 3) rr", crossShapedImage, (2, 3), rr, Just $ NextBlock NoOperation ul 5)
+      , ("crossShapedImage (2, 3) dl", crossShapedImage, (2, 3), dl, Just $ NextBlock NoOperation ul 5)
+      , ("crossShapedImage (2, 3) dr", crossShapedImage, (2, 3), dr, Just $ NextBlock NoOperation ur 5)
+      , ("crossShapedImage (2, 3) ll", crossShapedImage, (2, 3), ll, Just $ NextBlock NoOperation ur 5)
+      , ("crossShapedImage (2, 3) lr", crossShapedImage, (2, 3), lr, Just $ NextBlock NoOperation ul 5)
+      , ("crossShapedImage (2, 3) ul", crossShapedImage, (2, 3), ul, Just $ NextBlock NoOperation ul 5)
+      , ("crossShapedImage (2, 3) ur", crossShapedImage, (2, 3), ur, Just $ NextBlock NoOperation ur 5)
       , ("spiralImage (1, 1) rl", spiralImage, (1, 1), rl, Just $ NextBlock NoOperation rl 4)
       , ("stuckImage1 (1, 1) rl", stuckImage1, (1, 1), rl, Nothing)
       , ("stuckImage2 (1, 1) rl", stuckImage2, (1, 1), rl, Nothing)
@@ -76,6 +108,22 @@ r     1    y
   f ' ' = (WhiteCodel, 6)
   f '0' = (BlackCodel, 7)
   f '1' = (BlackCodel, 8)
+  f _   = undefined
+
+crossShapedImage :: Vector (Vector (Codel, Int))
+crossShapedImage = V.map (V.map f) $ toVector2D $ tail $ lines $ [q|
+*****
+**0**
+*1r2*
+**3**
+*****
+|] where
+  f '*' = (BlackCodel, 0)
+  f '0' = (WhiteCodel, 1)
+  f '1' = (WhiteCodel, 2)
+  f '2' = (WhiteCodel, 3)
+  f '3' = (WhiteCodel, 4)
+  f 'r' = (AchromaticCodel Red Normal, 5)
   f _   = undefined
 
 spiralImage :: Vector (Vector (Codel, Int))
