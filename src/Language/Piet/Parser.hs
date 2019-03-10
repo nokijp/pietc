@@ -24,6 +24,7 @@ import qualified Data.Vector as V
 import Language.Piet.Codel
 import Language.Piet.Internal.Filler
 import Language.Piet.Internal.Position
+import Language.Piet.Internal.WhiteCodelSlider
 import Language.Piet.Syntax
 
 data ParserError = EmptyBlockTableError  -- ^ The block table is empty.
@@ -63,22 +64,16 @@ parseFilledImage (codelTable, blockTable) = parse' where
     mapM_ parseState unvisitedBlockIndices
 
 nextBlock :: Vector (Vector (Codel, Int)) -> DPCC -> (Int, Int) -> Int -> Maybe NextBlock
-nextBlock codelTable dpcc (x, y) blockSize = nextBlock' where
-  nextBlock' :: Maybe NextBlock
-  nextBlock' = do
-    (AchromaticCodel currentHue currentLightness, _) <- codelTable V.!? y >>= (V.!? x)
-    searchNext 0 (currentHue, currentLightness) (x, y)
-
-  searchNext :: Int -> (Hue, Lightness) -> (Int, Int) -> Maybe NextBlock
-  searchNext step currentHueAndLightness position = do
-    let (nextX, nextY) = move (getDP dpcc) position
-    (nextCodel, blockIndex) <- codelTable V.!? nextY >>= (V.!? nextX)
-    case nextCodel of
-      AchromaticCodel nextHue nextLightness ->
-        let command = if step == 0 then commandFromTransition currentHueAndLightness (nextHue, nextLightness) blockSize else NoOperation
-        in Just NextBlock { getCommand = command, getDPCC = dpcc, getBlockIndex = blockIndex }
-      WhiteCodel -> searchNext (step + 1) currentHueAndLightness (nextX, nextY)
-      BlackCodel -> Nothing
+nextBlock codelTable dpcc (x, y) blockSize = do
+  (AchromaticCodel currentHue currentLightness, _) <- codelTable V.!? y >>= (V.!? x)
+  let (nextX, nextY) = move (getDP dpcc) (x, y)
+  (nextCodel, blockIndex) <- codelTable V.!? nextY >>= (V.!? nextX)
+  case nextCodel of
+    AchromaticCodel nextHue nextLightness ->
+      let command = commandFromTransition (currentHue, currentLightness) (nextHue, nextLightness) blockSize
+      in Just NextBlock { getCommand = command, getDPCC = dpcc, getBlockIndex = blockIndex }
+    WhiteCodel -> slideOnWhiteBlock codelTable (nextX, nextY) dpcc
+    BlackCodel -> Nothing
 
 {-# ANN minMaxCoords "HLint: ignore Redundant id" #-}
 {-# ANN minMaxCoords "HLint: ignore Use first" #-}

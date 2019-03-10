@@ -492,6 +492,7 @@ expectedComplexGraph = SyntaxGraph $ IM.fromList [ ( 0
                                                    , Block $ M.fromList [ (rl, NextBlock Pointer rl 9)
                                                                         , (rr, NextBlock Pointer rr 9)
                                                                         , (dl, NextBlock NoOperation dl 23)
+                                                                        , (dr, NextBlock NoOperation ll 22)
                                                                         , (ul, NextBlock Add ul 6)
                                                                         , (ur, NextBlock Add ur 6)
                                                                         ]
@@ -508,6 +509,10 @@ expectedComplexGraph = SyntaxGraph $ IM.fromList [ ( 0
                                                  , ( 17
                                                    , Block $ M.fromList [ (rl, NextBlock (Push 1) rl 18)
                                                                         , (rr, NextBlock (Push 1) rr 18)
+                                                                        , (dl, NextBlock NoOperation lr 23)
+                                                                        , (dr, NextBlock NoOperation ll 23)
+                                                                        , (ll, NextBlock NoOperation ur 12)
+                                                                        , (lr, NextBlock NoOperation ul 12)
                                                                         , (ul, NextBlock Pop ul 9)
                                                                         , (ur, NextBlock Pop ur 9)
                                                                         ]
@@ -523,6 +528,8 @@ expectedComplexGraph = SyntaxGraph $ IM.fromList [ ( 0
                                                  , ( 22
                                                    , Block $ M.fromList [ (rl, NextBlock NoOperation rl 23)
                                                                         , (rr, NextBlock NoOperation rr 23)
+                                                                        , (ll, NextBlock NoOperation ur 12)
+                                                                        , (lr, NextBlock NoOperation ul 12)
                                                                         , (ul, NextBlock NoOperation ul 12)
                                                                         , (ur, NextBlock NoOperation ur 12)
                                                                         ]
@@ -537,7 +544,9 @@ expectedComplexGraph = SyntaxGraph $ IM.fromList [ ( 0
                                                                         ]
                                                    )
                                                  , ( 25
-                                                   , Block $ M.fromList [ (ll, NextBlock NoOperation ll 23)
+                                                   , Block $ M.fromList [ (rl, NextBlock NoOperation ll 25)
+                                                                        , (rr, NextBlock NoOperation lr 25)
+                                                                        , (ll, NextBlock NoOperation ll 23)
                                                                         , (lr, NextBlock NoOperation lr 23)
                                                                         , (ul, NextBlock Duplicate ul 18)
                                                                         , (ur, NextBlock Duplicate ur 18)
