@@ -75,7 +75,7 @@ nextBlock codelTable dpcc (x, y) blockSize = nextBlock' where
     case nextCodel of
       AchromaticCodel nextHue nextLightness ->
         let command = if step == 0 then commandFromTransition currentHueAndLightness (nextHue, nextLightness) blockSize else NoOperation
-        in Just $ NextBlock { getCommand = command, getDPCC = dpcc, getBlockIndex = blockIndex }
+        in Just NextBlock { getCommand = command, getDPCC = dpcc, getBlockIndex = blockIndex }
       WhiteCodel -> searchNext (step + 1) currentHueAndLightness (nextX, nextY)
       BlackCodel -> Nothing
 

@@ -29,12 +29,14 @@ dotLines :: Text -> SyntaxGraph -> [Text]
 dotLines indent graph = do
   (from, block) <- IM.toAscList $ getSyntaxGraph graph
   (dpcc, nextBlock) <- M.toAscList $ nextBlockTable block
+  let nextDPCC = getDPCC nextBlock
   return $ T.concat [ indent
                     , showText from
                     , " -> "
                     , showText $ getBlockIndex nextBlock
                     , " [label=\""
                     , T.pack $ showDPCC dpcc
+                    , if nextDPCC /= dpcc then T.append " -> " $ showText nextDPCC else ""
                     , ": "
                     , T.pack $ showCommand $ getCommand nextBlock
                     , "\"]"
