@@ -18,7 +18,7 @@ module Language.Piet
   ) where
 
 import Control.Monad.Except
-import Data.Text (Text)
+import Data.Text.Lazy (Text)
 import Language.Piet.AssemblyGenerator
 import Language.Piet.CompileOption
 import Language.Piet.ImageReader

@@ -2,7 +2,7 @@ module Main where
 
 import Control.Monad
 import Control.Monad.Except
-import qualified Data.Text.IO as T
+import qualified Data.Text.Lazy.IO as T
 import ErrorMessage
 import Language.Piet
 import OptParser

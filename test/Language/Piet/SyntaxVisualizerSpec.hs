@@ -9,7 +9,7 @@ module Language.Piet.SyntaxVisualizerSpec
 import Control.Monad
 import qualified Data.IntMap as IM
 import qualified Data.Map as M
-import Data.Text (Text)
+import Data.Text.Lazy (Text)
 import Language.Piet.Syntax
 import Language.Piet.SyntaxVisualizer
 import SyntaxTestHelper
@@ -23,12 +23,65 @@ spec :: Spec
 spec = do
   describe "syntaxToDOT" $
     forM_
-      [ ("an empty graph", EmptySyntaxGraph, "digraph {}")
-      , ("a complex graph", complexGraph, complexDOT)
+      [ ("emptyGraph", EmptySyntaxGraph, "digraph {}")
+      , ("smallestGraph", smallestGraph, smallestDOT)
+      , ("stuckGraph", stuckGraph, stuckDOT)
+      , ("complexGraph", complexGraph, complexDOT)
       ] $ \(name, graph, dot) ->
         context ("when given " ++ name) $
           it "convert a syntax graph to a DOT script" $ syntaxToDOT graph `shouldBe` dot
 
+smallestGraph :: SyntaxGraph
+smallestGraph = SyntaxGraph 999 dr $ IM.singleton 999 (Block M.empty)
+
+smallestDOT :: Text
+smallestDOT = [q|digraph {
+  rankdir=LR
+  start [label="" shape=point color=white]
+  node [label="" shape=circle color=black]
+  start -> 999 [label="dr"]
+  exit999 [label="" shape=point color=white]
+  999 -> exit999 [label=""]
+}|]
+
+stuckGraph :: SyntaxGraph
+stuckGraph = SyntaxGraph 0 rl $ IM.fromList
+  [ ( 0
+    , Block $ M.fromList [ (rl, NextBlock (Push 1) rl 1)
+                         , (rr, NextBlock (Push 1) rr 1)
+                         , (dl, NextBlock NoOperation ul 0)
+                         , (dr, NextBlock NoOperation ur 0)
+                         ]
+    )
+  , ( 1
+    , Block $ M.fromList [ (rl, ExitProgram)
+                         , (rr, ExitProgram)
+                         , (dl, NextBlock NoOperation ul 0)
+                         , (dr, NextBlock NoOperation ur 0)
+                         , (ll, NextBlock Pop ll 0)
+                         , (lr, NextBlock Pop lr 0)
+                         ]
+    )
+  ]
+
+stuckDOT :: Text
+stuckDOT = [q|digraph {
+  rankdir=LR
+  start [label="" shape=point color=white]
+  node [label="" shape=circle color=black]
+  start -> 0 [label="rl"]
+  0 -> 1 [label="rl: push 1"]
+  0 -> 1 [label="rr: push 1"]
+  0 -> 0 [label="dl: noop -> ul"]
+  0 -> 0 [label="dr: noop -> ur"]
+  exit1 [label="" shape=point color=white]
+  1 -> exit1 [label="rl"]
+  1 -> exit1 [label="rr"]
+  1 -> 0 [label="dl: noop -> ul"]
+  1 -> 0 [label="dr: noop -> ur"]
+  1 -> 0 [label="ll: pop"]
+  1 -> 0 [label="lr: pop"]
+}|]
 
 complexGraph :: SyntaxGraph
 complexGraph = SyntaxGraph 0 rl $ IM.fromList

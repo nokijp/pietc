@@ -8,8 +8,8 @@ module Language.Piet.SyntaxVisualizer
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IM
 import qualified Data.Map as M
-import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text.Lazy (Text)
+import Data.Text.Lazy.Builder
 import Language.Piet.Syntax
 
 -- | Convert a 'SyntaxGraph' to a DOT script, which describes graphs.
@@ -18,45 +18,43 @@ import Language.Piet.Syntax
 syntaxToDOT :: SyntaxGraph -> Text
 syntaxToDOT EmptySyntaxGraph = "digraph {}"
 syntaxToDOT (SyntaxGraph blockIndex dpcc blockMap) =
-  T.intercalate "\n" [ "digraph {"
-                     , "  rankdir=LR"
-                     , "  start [label=\"\" shape=point color=white]"
-                     , "  node [label=\"\" shape=circle color=black]"
-                     , startEdge blockIndex dpcc
-                     , T.intercalate "\n" $ dotLines blockMap
-                     , "}"
-                     ]
+  toLazyText $  "digraph {\n"
+             <> "  rankdir=LR\n"
+             <> "  start [label=\"\" shape=point color=white]\n"
+             <> "  node [label=\"\" shape=circle color=black]\n"
+             <> startEdge blockIndex dpcc
+             <> mconcat (blocks blockMap)
+             <> "}"
 
-startEdge :: Int -> DPCC -> Text
+startEdge :: Int -> DPCC -> Builder
 startEdge blockIndex dpcc =
-  T.concat [ "  start -> "
-           , showText blockIndex
-           , " [label=\""
-           , T.pack $ showDPCC dpcc
-           , "\"]"
-           ]
+  "  start -> " <> showBuilder blockIndex <> " [label=\"" <> fromString (showDPCC dpcc) <> "\"]\n"
 
-dotLines :: IntMap Block -> [Text]
-dotLines blockMap = do
+blocks :: IntMap Block -> [Builder]
+blocks blockMap = do
   (from, block) <- IM.toAscList blockMap
-  (dpcc, nextBlock) <- M.toAscList $ nextBlockTable block
-  dotBlockLines from dpcc nextBlock
+  let dpccAndNextBlock = M.toAscList $ nextBlockTable block
+  return $ if null dpccAndNextBlock then emptyBlock from else nonemptyBlock from dpccAndNextBlock
 
-dotBlockLines :: Int -> DPCC -> NextBlock -> [Text]
-dotBlockLines from fromDPCC (NextBlock command toDPCC nextBlockIndex) =
-  [ T.concat [ "  "
-             , showText from
-             , " -> "
-             , showText nextBlockIndex
-             , " [label=\""
-             , T.pack $ showDPCC fromDPCC
-             , ": "
-             , T.pack $ showCommand command
-             , if toDPCC /= fromDPCC then T.append " -> " $ T.pack $ showDPCC toDPCC else ""
-             , "\"]"
-             ]
-  ]
-dotBlockLines _ _ ExitProgram = undefined  -- FIXME
+nonemptyBlock :: Int -> [(DPCC, NextBlock)] -> Builder
+nonemptyBlock from dpccAndNextBlock = nodeLine <> edgeLines where
+  hasExit = any ((== ExitProgram) . snd) dpccAndNextBlock
+  nodeLine = if hasExit then exitEdge from else ""
+  edgeLines = foldMap (uncurry $ nextBlockEdge from) dpccAndNextBlock
 
-showText :: Show a => a -> Text
-showText = T.pack . show
+emptyBlock :: Int -> Builder
+emptyBlock from = exitEdge from <> "  " <> showBuilder from <> " -> exit" <> showBuilder from <> " [label=\"\"]\n"
+
+exitEdge :: Int -> Builder
+exitEdge from = "  exit" <> showBuilder from <> " [label=\"\" shape=point color=white]\n"
+
+nextBlockEdge :: Int -> DPCC -> NextBlock -> Builder
+nextBlockEdge from fromDPCC (NextBlock command toDPCC nextBlockIndex) =
+  let nextDPCCText = if toDPCC /= fromDPCC then " -> " <> fromString (showDPCC toDPCC) else ""
+  in "  " <> showBuilder from <> " -> " <> showBuilder nextBlockIndex
+       <> " [label=\"" <> fromString (showDPCC fromDPCC) <> ": " <> fromString (showCommand command) <> nextDPCCText <> "\"]\n"
+nextBlockEdge from fromDPCC ExitProgram =
+  "  " <> showBuilder from <> " -> exit" <> showBuilder from <> " [label=\"" <> fromString (showDPCC fromDPCC) <> "\"]\n"
+
+showBuilder :: Show a => a -> Builder
+showBuilder = fromString . show
