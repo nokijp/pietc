@@ -62,19 +62,23 @@ step exitLabel labelTable dpccPtr index block = mdo
 
   let blockTable = M.toAscList $ nextBlockTable block
   let backwardDPCCTable = dpccsToBackwardDPCCTable $ fst <$> blockTable
-  switchLabelTable <- forM blockTable $ \(nextDPCC, NextBlock nextCommand nextBlockDPCC nextBlockIndex) -> do  -- FIXME
-    let branchLabelName = stringToShort $ "jump_" ++ show index ++ "_" ++ show nextBlockIndex ++ "_" ++ showDPCC nextDPCC
+  switchLabelTable <- forM blockTable $ \(nextDPCC, nextBlock) -> do
+    let branchLabelName = stringToShort $ "jump_" ++ show index ++ "_" ++ showDPCC nextDPCC
     branchLabel <- IR.block `IR.named` branchLabelName
-
     let currentDPCCs = backwardDPCCTable M.! nextDPCC
-    when (currentDPCCs /= [nextBlockDPCC]) $ IR.store dpccPtr 4 $ int32 $ dpccToInteger nextBlockDPCC
-    commandToLLVMInstruction nextCommand dpccPtr
-
-    let nextLabel = labelTable IM.! nextBlockIndex  -- unsafe
-    IR.br nextLabel
+    switchBranch exitLabel labelTable dpccPtr currentDPCCs nextBlock
     return (currentDPCCs, branchLabel)
 
   return stepLabel
+
+switchBranch :: IR.MonadIRBuilder m => AST.Name -> IntMap AST.Name -> AST.Operand -> [DPCC] -> NextBlock -> m ()
+switchBranch exitLabel _          _       _            ExitProgram = void $ IR.br exitLabel
+switchBranch _         labelTable dpccPtr currentDPCCs (NextBlock nextCommand nextBlockDPCC nextBlockIndex) = do
+  when (currentDPCCs /= [nextBlockDPCC]) $ IR.store dpccPtr 4 $ int32 $ dpccToInteger nextBlockDPCC
+  commandToLLVMInstruction nextCommand dpccPtr
+  let nextLabel = labelTable IM.! nextBlockIndex  -- unsafe
+  IR.br nextLabel
+  return ()
 
 dpccToInteger :: DPCC -> Integer
 dpccToInteger (DPCC dp cc) = toInteger $ fromEnum dp * 2 + fromEnum cc

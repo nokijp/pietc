@@ -54,7 +54,7 @@ parseFilledImage (codelTable, blockTable) = searchInitialBlock >>= parseFrom whe
     modify $ IM.insert blockIndex block
 
     visitedIndices <- IM.keysSet <$> get
-    let nextBlockIndices = mapMaybe (nextBlockToIndex . snd) nextBlockList  -- FIXME
+    let nextBlockIndices = mapMaybe (nextBlockToIndex . snd) nextBlockList
     let unvisitedBlockIndices = filter (`IS.notMember` visitedIndices) nextBlockIndices
     mapM_ parseState unvisitedBlockIndices
 
