@@ -166,8 +166,7 @@ complexGraph = SyntaxGraph 0 rl $ IM.fromList
 complexDOT :: Text
 complexDOT = [q|digraph {
   rankdir=LR
-  node [label="" shape=point color=white]
-  start
+  start [label="" shape=point color=white]
   node [label="" shape=circle color=black]
   start -> 0 [label="rl"]
   0 -> 1 [label="rl: pop"]

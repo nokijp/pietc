@@ -18,34 +18,29 @@ import Language.Piet.Internal.Position
 import Language.Piet.Syntax
 
 -- | Move on white codels and return 'NextBlock'.
---
--- When the step is stuck, this returns 'Nothing'.
-slideOnWhiteBlock :: Vector (Vector (Codel, Int)) -> (Int, Int) -> DPCC -> Maybe NextBlock
+slideOnWhiteBlock :: Vector (Vector (Codel, Int)) -> (Int, Int) -> DPCC -> NextBlock
 slideOnWhiteBlock image initialPosition initialDPCC = result where
   result = (`evalState` S.empty) $ fmap (either id $ error "unreachable") . runExceptT $ slideOnWhiteBlockState initialPosition initialDPCC
 
   slideOnWhiteBlockState :: ( MonadState (Set ((Int, Int), DPCC)) m
-                            , MonadError (Maybe NextBlock) m
+                            , MonadError NextBlock m
                             )
                          => (Int, Int) -> DPCC -> m ()
   slideOnWhiteBlockState position dpcc = do
-    (nextCodel, nextIndex, nextPosition, nextDPCC) <- maybe (throwError Nothing) return $ next position dpcc
-    when (nextCodel /= WhiteCodel) $ throwError $ Just NextBlock { getCommand = NoOperation
-                                                                 , getDPCC = nextDPCC
-                                                                 , getBlockIndex = nextIndex
-                                                                 }
+    (nextCodel, nextIndex, nextPosition, nextDPCC) <- maybe (throwError ExitProgram) return $ next position dpcc
+    when (nextCodel /= WhiteCodel) $ throwError $ NextBlock NoOperation nextDPCC nextIndex
 
     visited <- get
     let nextCodelDPCC = (nextPosition, nextDPCC)
-    when (S.member nextCodelDPCC visited) $ throwError Nothing
+    when (S.member nextCodelDPCC visited) $ throwError ExitProgram
     modify $ S.insert nextCodelDPCC
 
     slideOnWhiteBlockState nextPosition nextDPCC
 
   next :: (Int, Int) -> DPCC -> Maybe (Codel, Int, (Int, Int), DPCC)
   next position dpcc = listToMaybe $ do
-    nextDPCC <- take 4 $ iterate succDPCC dpcc
-    let nextPosition = move (getDP nextDPCC) position
+    nextDPCC@(DPCC nextDP _) <- take 4 $ iterate succDPCC dpcc
+    let nextPosition = move nextDP position
     (nextCodel, nextIndex) <- maybeToList $ getNonBlackCodel nextPosition
     return (nextCodel, nextIndex, nextPosition, nextDPCC)
 
@@ -56,4 +51,4 @@ slideOnWhiteBlock image initialPosition initialDPCC = result where
     return (codel, index)
 
 succDPCC :: DPCC -> DPCC
-succDPCC dpcc = DPCC { getDP = cyclicSucc (getDP dpcc), getCC = cyclicSucc (getCC dpcc) }
+succDPCC (DPCC dp cc) = DPCC (cyclicSucc dp) (cyclicSucc cc)

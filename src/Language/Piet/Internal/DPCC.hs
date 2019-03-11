@@ -23,16 +23,14 @@ dpccsToBackwardDPCCTable possibleDPCCs = M.fromList $ nearestTableToBackwardTabl
 
 nearestDPCCTable :: [DPCC] -> [(DPCC, DPCC)]
 nearestDPCCTable possibleDPCCs = (id &&& nearestDPCC) <$> allDPCCs where
-  nearestDPCC dpcc =
+  nearestDPCC (DPCC dp cc) =
     let
-      dp = getDP dpcc
-      cc = getCC dpcc
       nearestDP = nearestDPTable M.! dp
       nearestCC = toEnum $ (fromEnum cc + fromEnum nearestDP - fromEnum dp) `mod` 2
-      nearestDPCCCandidate = DPCC { getDP = nearestDP, getCC = nearestCC }
+      nearestDPCCCandidate = DPCC nearestDP nearestCC
     in if S.member nearestDPCCCandidate possibleDPCCSet
        then nearestDPCCCandidate
-       else DPCC { getDP = nearestDP, getCC = cyclicSucc nearestCC }
+       else DPCC nearestDP (cyclicSucc nearestCC)
 
   nearestDPTable :: Map DirectionPointer DirectionPointer
   nearestDPTable = M.fromList $ go reversedAllDPs (cycle reversedPossibleDPs) (last reversedPossibleDPs) where

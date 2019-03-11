@@ -33,11 +33,11 @@ generateAssembly syntax = IR.buildModule "" $ do
   _ <- IR.function "main" [] T.i32 $ \_ -> mainFunction syntax
   return ()
 
-mainFunction :: (MonadFix m, IR.MonadModuleBuilder m) => SyntaxGraph -> IR.IRBuilderT m ()
+mainFunction :: MonadFix m => SyntaxGraph -> IR.IRBuilderT m ()
 mainFunction EmptySyntaxGraph = do
   _ <- IR.block `IR.named` "entry"
   IR.ret $ int32 0
-mainFunction SyntaxGraph { getInitialBlockIndex = blockIndex, getInitialDPCC = dpcc, getBlockMap = blockMap } = mdo
+mainFunction (SyntaxGraph blockIndex dpcc blockMap) = mdo
   _ <- IR.block `IR.named` "entry"
   dpccPtr <- IR.alloca T.i32 Nothing 4 `IR.named` "dpcc_ptr"
   IR.store dpccPtr 4 $ int32 $ dpccToInteger dpcc
@@ -62,15 +62,13 @@ step exitLabel labelTable dpccPtr index block = mdo
 
   let blockTable = M.toAscList $ nextBlockTable block
   let backwardDPCCTable = dpccsToBackwardDPCCTable $ fst <$> blockTable
-  switchLabelTable <- forM blockTable $ \(nextDPCC, nextBlock) -> do
-    let nextBlockIndex = getBlockIndex nextBlock
+  switchLabelTable <- forM blockTable $ \(nextDPCC, NextBlock nextCommand nextBlockDPCC nextBlockIndex) -> do  -- FIXME
     let branchLabelName = stringToShort $ "jump_" ++ show index ++ "_" ++ show nextBlockIndex ++ "_" ++ showDPCC nextDPCC
     branchLabel <- IR.block `IR.named` branchLabelName
 
     let currentDPCCs = backwardDPCCTable M.! nextDPCC
-    let nextBlockDPCC = getDPCC nextBlock
     when (currentDPCCs /= [nextBlockDPCC]) $ IR.store dpccPtr 4 $ int32 $ dpccToInteger nextBlockDPCC
-    commandToLLVMInstruction (getCommand nextBlock) dpccPtr
+    commandToLLVMInstruction nextCommand dpccPtr
 
     let nextLabel = labelTable IM.! nextBlockIndex  -- unsafe
     IR.br nextLabel
@@ -79,7 +77,7 @@ step exitLabel labelTable dpccPtr index block = mdo
   return stepLabel
 
 dpccToInteger :: DPCC -> Integer
-dpccToInteger dpcc = toInteger $ fromEnum (getDP dpcc) * 2 + fromEnum (getCC dpcc)
+dpccToInteger (DPCC dp cc) = toInteger $ fromEnum dp * 2 + fromEnum cc
 
 tableToList :: [([a], b)] -> [(a, b)]
 tableToList table = do

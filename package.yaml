@@ -24,6 +24,9 @@ library:
   ghc-options:
   - -Wall
   - -Werror
+  - -Widentities
+  - -Wpartial-fields
+  - -Wredundant-constraints
 
 executables:
   pietc:
@@ -35,6 +38,9 @@ executables:
     - -with-rtsopts=-N
     - -Wall
     - -Werror
+    - -Widentities
+    - -Wpartial-fields
+    - -Wredundant-constraints
     dependencies:
     - pietc
     - optparse-applicative
@@ -48,6 +54,9 @@ tests:
     ghc-options:
     - -Wall
     - -Werror
+    - -Widentities
+    - -Wpartial-fields
+    - -Wredundant-constraints
     dependencies:
     - pietc
     - hspec

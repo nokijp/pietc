@@ -7,20 +7,20 @@ import Data.Maybe
 import Language.Piet
 import Options.Applicative
 
-data ProgramConfig = OutputBinaryConfig { inputFile :: FilePath
-                                        , outputFile :: FilePath
-                                        , imageConfig :: ImageConfig
-                                        , optimizationLevel :: OptimizationLevel
+data ProgramConfig = OutputBinaryConfig { _inputFile :: FilePath
+                                        , _outputFile :: FilePath
+                                        , _imageConfig :: ImageConfig
+                                        , _optimizationLevel :: OptimizationLevel
                                         }
-                   | RunJITConfig { inputFile :: FilePath
-                                  , imageConfig :: ImageConfig
-                                  , optimizationLevel :: OptimizationLevel
+                   | RunJITConfig { _inputFile :: FilePath
+                                  , _imageConfig :: ImageConfig
+                                  , _optimizationLevel :: OptimizationLevel
                                   }
-                   | OutputGraphConfig { inputFile :: FilePath
-                                       , imageConfig :: ImageConfig
+                   | OutputGraphConfig { _inputFile :: FilePath
+                                       , _imageConfig :: ImageConfig
                                        }
 
-data RunType = OutputBinary { _outputFile :: String } | RunJIT | OutputGraph
+data RunType = OutputBinary { __outputFile :: String } | RunJIT | OutputGraph
 
 parseArgs :: IO ProgramConfig
 parseArgs = execParser parserInfo
@@ -59,19 +59,9 @@ parser = toConfig <$> optional (option auto $ long "codel-size" <> metavar "<siz
     f "z" = Right SizeLevelHigh
     f _   = Left "accepts only `0', `1', `2', `3', `s' or `z'"
   toConfig codelSizeOpt additionalColorOpt multicoloredCodelOpt optimizationLevelOpt runTypeOpt inputOpt = config runTypeOpt where
-    config (OutputBinary path) = OutputBinaryConfig { inputFile = inputOpt
-                                                    , outputFile = path
-                                                    , imageConfig = imageConfigOpt
-                                                    , optimizationLevel = fromMaybe OptimizationLevelMiddle optimizationLevelOpt
-                                                    }
-    config RunJIT = RunJITConfig { inputFile = inputOpt
-                                 , imageConfig = imageConfigOpt
-                                 , optimizationLevel = fromMaybe OptimizationLevelMiddle optimizationLevelOpt
-                                 }
-    config OutputGraph = OutputGraphConfig { inputFile = inputOpt
-                                           , imageConfig = imageConfigOpt
-                                           }
-    imageConfigOpt = ImageConfig { additionalColor = fromMaybe (additionalColor defaultImageConfig) additionalColorOpt
-                                 , multicoloredCodel = fromMaybe (multicoloredCodel defaultImageConfig) multicoloredCodelOpt
-                                 , codelSize = fromMaybe (codelSize defaultImageConfig) codelSizeOpt
-                                 }
+    config (OutputBinary path) = OutputBinaryConfig inputOpt path imageConfigOpt (fromMaybe OptimizationLevelMiddle optimizationLevelOpt)
+    config RunJIT = RunJITConfig inputOpt imageConfigOpt (fromMaybe OptimizationLevelMiddle optimizationLevelOpt)
+    config OutputGraph = OutputGraphConfig inputOpt imageConfigOpt
+    imageConfigOpt = ImageConfig (fromMaybe (additionalColor defaultImageConfig) additionalColorOpt)
+                                 (fromMaybe (multicoloredCodel defaultImageConfig) multicoloredCodelOpt)
+                                 (fromMaybe (codelSize defaultImageConfig) codelSizeOpt)

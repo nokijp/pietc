@@ -42,10 +42,7 @@ parseFilledImage (codelTable, blockTable) = searchInitialBlock >>= parseFrom whe
   parseFrom Nothing = return EmptySyntaxGraph
   parseFrom (Just (initialBlockIndex, initialDPCC)) = do
     blockMap <- execStateT (parseState initialBlockIndex) IM.empty
-    return SyntaxGraph { getInitialBlockIndex = initialBlockIndex
-                       , getInitialDPCC = initialDPCC
-                       , getBlockMap = blockMap
-                       }
+    return $ SyntaxGraph initialBlockIndex initialDPCC blockMap
 
   parseState :: (MonadError ParserError m, MonadState (IntMap Block) m) => Int -> m ()
   parseState blockIndex = do
@@ -57,29 +54,37 @@ parseFilledImage (codelTable, blockTable) = searchInitialBlock >>= parseFrom whe
     modify $ IM.insert blockIndex block
 
     visitedIndices <- IM.keysSet <$> get
-    let nextBlockIndices = getBlockIndex . snd <$> nextBlockList
+    let nextBlockIndices = mapMaybe (nextBlockToIndex . snd) nextBlockList  -- FIXME
     let unvisitedBlockIndices = filter (`IS.notMember` visitedIndices) nextBlockIndices
     mapM_ parseState unvisitedBlockIndices
+
+  nextBlockToIndex :: NextBlock -> Maybe Int
+  nextBlockToIndex (NextBlock _ _ nextBlockIndex) = Just nextBlockIndex
+  nextBlockToIndex ExitProgram = Nothing
+
+  nextBlockToIndexAndDPCC :: NextBlock -> Maybe (Int, DPCC)
+  nextBlockToIndexAndDPCC (NextBlock _ nextBlockDPCC nextBlockIndex) = Just (nextBlockIndex, nextBlockDPCC)
+  nextBlockToIndexAndDPCC ExitProgram = Nothing
 
   searchInitialBlock :: MonadError ParserError m => m (Maybe (Int, DPCC))
   searchInitialBlock = do
     (initialCodel, initialBlockIndex) <- justOrThrow EmptyBlockTableError $ codelTable V.!? 0 >>= (V.!? 0)
-    let initialDPCC = DPCC { getDP = DPRight, getCC = CCLeft }
+    let initialDPCC = DPCC DPRight CCLeft
     case initialCodel of
       AchromaticCodel _ _ -> return $ Just (initialBlockIndex, initialDPCC)
-      WhiteCodel -> return $ (getBlockIndex &&& getDPCC) <$> slideOnWhiteBlock codelTable (0, 0) initialDPCC
+      WhiteCodel -> return $ nextBlockToIndexAndDPCC $ slideOnWhiteBlock codelTable (0, 0) initialDPCC
       BlackCodel -> throwError IllegalInitialColorError
 
   searchNextBlock :: (Int, Int) -> DPCC -> Int -> Maybe NextBlock
-  searchNextBlock (x, y) dpcc blockSize = do
+  searchNextBlock (x, y) dpcc@(DPCC dp _) blockSize = do
     (AchromaticCodel currentHue currentLightness, _) <- codelTable V.!? y >>= (V.!? x)
-    let (nextX, nextY) = move (getDP dpcc) (x, y)
+    let (nextX, nextY) = move dp (x, y)
     (nextCodel, blockIndex) <- codelTable V.!? nextY >>= (V.!? nextX)
     case nextCodel of
       AchromaticCodel nextHue nextLightness ->
         let command = commandFromTransition (currentHue, currentLightness) (nextHue, nextLightness) blockSize
-        in Just NextBlock { getCommand = command, getDPCC = dpcc, getBlockIndex = blockIndex }
-      WhiteCodel -> slideOnWhiteBlock codelTable (nextX, nextY) dpcc
+        in Just $ NextBlock command dpcc blockIndex
+      WhiteCodel -> Just $ slideOnWhiteBlock codelTable (nextX, nextY) dpcc
       BlackCodel -> Nothing
 
 {-# ANN minMaxCoords "HLint: ignore Redundant id" #-}
@@ -87,14 +92,14 @@ parseFilledImage (codelTable, blockTable) = searchInitialBlock >>= parseFrom whe
 {-# ANN minMaxCoords "HLint: ignore Use second" #-}
 minMaxCoords :: [(Int, Int)] -> [(DPCC, (Int, Int))]
 minMaxCoords positions = fmap (`maximumOn` positions) <$> fs where
-  fs = [ (DPCC { getDP = DPRight, getCC = CCLeft },  (id     *** negate) . id  )
-       , (DPCC { getDP = DPRight, getCC = CCRight }, (id     *** id    ) . id  )
-       , (DPCC { getDP = DPDown,  getCC = CCLeft },  (id     *** id    ) . swap)
-       , (DPCC { getDP = DPDown,  getCC = CCRight }, (id     *** negate) . swap)
-       , (DPCC { getDP = DPLeft,  getCC = CCLeft },  (negate *** id    ) . id  )
-       , (DPCC { getDP = DPLeft,  getCC = CCRight }, (negate *** negate) . id  )
-       , (DPCC { getDP = DPUp,    getCC = CCLeft },  (negate *** negate) . swap)
-       , (DPCC { getDP = DPUp,    getCC = CCRight }, (negate *** id    ) . swap)
+  fs = [ (DPCC DPRight CCLeft,  (id     *** negate) . id  )
+       , (DPCC DPRight CCRight, (id     *** id    ) . id  )
+       , (DPCC DPDown  CCLeft,  (id     *** id    ) . swap)
+       , (DPCC DPDown  CCRight, (id     *** negate) . swap)
+       , (DPCC DPLeft  CCLeft,  (negate *** id    ) . id  )
+       , (DPCC DPLeft  CCRight, (negate *** negate) . id  )
+       , (DPCC DPUp    CCLeft,  (negate *** negate) . swap)
+       , (DPCC DPUp    CCRight, (negate *** id    ) . swap)
        ]
 
 maximumOn :: Ord b => (a -> b) -> [a] -> a

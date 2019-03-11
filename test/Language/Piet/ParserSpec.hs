@@ -26,19 +26,20 @@ spec = do
 
   describe "parseFilledImage" $ do
     forM_
-      [ ("when given a small image", smallImage, smallBlockTable, expectedSmallGraph)
-      , ("when given a white image", whiteImage, whiteBlockTable, EmptySyntaxGraph)
-      , ("when given a distant initial image", distantInitialImage, distantInitialBlockTable, expectedDistantInitialGraph)
-      , ("when given a complex image", complexImage, complexBlockTable, expectedComplexGraph)
+      [ ("smallImage", smallImage, smallBlockTable, expectedSmallGraph)
+      , ("whiteImage", whiteImage, whiteBlockTable, EmptySyntaxGraph)
+      , ("distantInitialImage", distantInitialImage, distantInitialBlockTable, expectedDistantInitialGraph)
+      , ("stuckImage", stuckImage, stuckBlockTable, expectedStuckGraph)
+      , ("complexImage", complexImage, complexBlockTable, expectedComplexGraph)
       ] $ \(name, image, blockTable, expectedGraph) ->
-        context name $ do
+        context ("when given " ++ name) $ do
           it "returns a syntax graph" $ parseFilledImage (image, blockTable) `shouldBe` Right expectedGraph
 
     forM_
-      [ ("when given an empty image", V.empty, IM.empty, EmptyBlockTableError)
-      , ("when given a black image", blackImage, blackBlockTable, IllegalInitialColorError)
+      [ ("emptyImage", V.empty, IM.empty, EmptyBlockTableError)
+      , ("blackImage", blackImage, blackBlockTable, IllegalInitialColorError)
       ] $ \(name, image, blockTable, expectedError) ->
-        context name $ do
+        context ("when given " ++ name) $ do
           it "returns an error" $ parseFilledImage (image, blockTable) `shouldBe` Left expectedError
 
     context "when given an image which only consists of two pixels" $ do
@@ -146,6 +147,50 @@ expectedDistantInitialGraph = SyntaxGraph 1 ur $ IM.fromList
                          , (dr, NextBlock NoOperation ur 1)
                          , (ul, NextBlock NoOperation ul 1)
                          , (ur, NextBlock NoOperation ur 1)
+                         ]
+    )
+  ]
+
+stuckImage :: Vector (Vector (Codel, Int))
+stuckImage = toVector2D
+  [ [ (AchromaticCodel Red Light, 0)
+    , (AchromaticCodel Red Normal, 1)
+    , (WhiteCodel, 2)
+    ]
+  , [ (WhiteCodel, 2)
+    , (WhiteCodel, 2)
+    , (WhiteCodel, 2)
+    ]
+  , [ (WhiteCodel, 2)
+    , (BlackCodel, 3)
+    , (WhiteCodel, 2)
+    ]
+  ]
+
+stuckBlockTable :: IntMap [(Int, Int)]
+stuckBlockTable = IM.fromList
+  [ (0, [(0, 0)])
+  , (1, [(1, 0)])
+  , (2, [(2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (2, 2)])
+  , (3, [(1, 2)])
+  ]
+
+expectedStuckGraph :: SyntaxGraph
+expectedStuckGraph = SyntaxGraph 0 rl $ IM.fromList
+  [ ( 0
+    , Block $ M.fromList [ (rl, NextBlock (Push 1) rl 1)
+                         , (rr, NextBlock (Push 1) rr 1)
+                         , (dl, NextBlock NoOperation ul 0)
+                         , (dr, NextBlock NoOperation ur 0)
+                         ]
+    )
+  , ( 1
+    , Block $ M.fromList [ (rl, ExitProgram)
+                         , (rr, ExitProgram)
+                         , (dl, NextBlock NoOperation ul 0)
+                         , (dr, NextBlock NoOperation ur 0)
+                         , (ll, NextBlock Pop ll 0)
+                         , (lr, NextBlock Pop lr 0)
                          ]
     )
   ]

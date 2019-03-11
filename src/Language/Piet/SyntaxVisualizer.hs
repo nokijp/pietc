@@ -17,42 +17,46 @@ import Language.Piet.Syntax
 -- By using tools such as Graphviz, DOT graphs can be converted into images.
 syntaxToDOT :: SyntaxGraph -> Text
 syntaxToDOT EmptySyntaxGraph = "digraph {}"
-syntaxToDOT SyntaxGraph { getInitialBlockIndex = blockIndex, getInitialDPCC = dpcc, getBlockMap = blockMap } =
+syntaxToDOT (SyntaxGraph blockIndex dpcc blockMap) =
   T.intercalate "\n" [ "digraph {"
                      , "  rankdir=LR"
-                     , "  node [label=\"\" shape=point color=white]"
-                     , "  start"
+                     , "  start [label=\"\" shape=point color=white]"
                      , "  node [label=\"\" shape=circle color=black]"
-                     , startEdge "  " blockIndex dpcc
-                     , T.intercalate "\n" $ dotLines "  " blockMap
+                     , startEdge blockIndex dpcc
+                     , T.intercalate "\n" $ dotLines blockMap
                      , "}"
                      ]
 
-startEdge :: Text -> Int -> DPCC -> Text
-startEdge indent blockIndex dpcc = T.concat [ indent
-                                            , "start -> "
-                                            , showText blockIndex
-                                            , " [label=\""
-                                            , T.pack $ showDPCC dpcc
-                                            , "\"]"
-                                            ]
+startEdge :: Int -> DPCC -> Text
+startEdge blockIndex dpcc =
+  T.concat [ "  start -> "
+           , showText blockIndex
+           , " [label=\""
+           , T.pack $ showDPCC dpcc
+           , "\"]"
+           ]
 
-dotLines :: Text -> IntMap Block -> [Text]
-dotLines indent blockMap = do
+dotLines :: IntMap Block -> [Text]
+dotLines blockMap = do
   (from, block) <- IM.toAscList blockMap
   (dpcc, nextBlock) <- M.toAscList $ nextBlockTable block
-  let nextDPCC = getDPCC nextBlock
-  return $ T.concat [ indent
-                    , showText from
-                    , " -> "
-                    , showText $ getBlockIndex nextBlock
-                    , " [label=\""
-                    , T.pack $ showDPCC dpcc
-                    , ": "
-                    , T.pack $ showCommand $ getCommand nextBlock
-                    , if nextDPCC /= dpcc then T.append " -> " $ T.pack $ showDPCC nextDPCC else ""
-                    , "\"]"
-                    ]
+  dotBlockLines from dpcc nextBlock
+
+dotBlockLines :: Int -> DPCC -> NextBlock -> [Text]
+dotBlockLines from fromDPCC (NextBlock command toDPCC nextBlockIndex) =
+  [ T.concat [ "  "
+             , showText from
+             , " -> "
+             , showText nextBlockIndex
+             , " [label=\""
+             , T.pack $ showDPCC fromDPCC
+             , ": "
+             , T.pack $ showCommand command
+             , if toDPCC /= fromDPCC then T.append " -> " $ T.pack $ showDPCC toDPCC else ""
+             , "\"]"
+             ]
+  ]
+dotBlockLines _ _ ExitProgram = undefined  -- FIXME
 
 showText :: Show a => a -> Text
 showText = T.pack . show

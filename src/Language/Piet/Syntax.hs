@@ -23,17 +23,19 @@ import Language.Piet.Codel
 newtype Block = Block { nextBlockTable :: Map DPCC NextBlock } deriving (Show, Eq)
 
 -- | A data type which contains information about a move to the next block.
-data NextBlock = NextBlock { getCommand :: Command  -- ^ The command which will be executed when moving into the next codel block.
-                           , getDPCC :: DPCC  -- ^ The DP and CC which will be used in the next codel block.
-                           , getBlockIndex :: Int  -- ^ The index of the next codel block.
-                           } deriving (Show, Eq)
+data NextBlock = NextBlock { _command :: Command  -- ^ The command which will be executed when moving into the next codel block.
+                           , _dpcc :: DPCC  -- ^ The DP and CC which will be used in the next codel block.
+                           , _blockIndex :: Int  -- ^ The index of the next codel block.
+                           }
+               | ExitProgram
+                 deriving (Show, Eq)
 
 -- | A representation of the syntax of Piet.
 --
 -- 'SyntaxGraph' has a graph structure whose nodes represent codel blocks and edges represent the next steps.
-data SyntaxGraph = SyntaxGraph { getInitialBlockIndex :: Int
-                               , getInitialDPCC :: DPCC
-                               , getBlockMap :: IntMap Block
+data SyntaxGraph = SyntaxGraph { _initialBlockIndex :: Int
+                               , _initialDPCC :: DPCC
+                               , _blockMap :: IntMap Block
                                }
                  | EmptySyntaxGraph
                    deriving (Show, Eq)
@@ -110,7 +112,7 @@ showCommand OutNumber   = "out (number)"
 showCommand OutChar     = "out (char)"
 
 showDPCC :: DPCC -> String
-showDPCC dpcc = [charDP $ getDP dpcc, charCC $ getCC dpcc] where
+showDPCC (DPCC dp cc) = [charDP dp, charCC cc] where
   charDP DPRight = 'r'
   charDP DPDown  = 'd'
   charDP DPLeft  = 'l'
