@@ -24,12 +24,12 @@ spec :: Spec
 spec = do
   describe "fillAll" $ do
     forM_
-      [ ("when given an empty image", V.empty, V.empty, [])
-      , ("when given a small image", smallImage, expectedFilledSmallImage, expectedSmallCoords)
-      , ("when given a complex image", complexImage, expectedFilledComplexImage, expectedComplexCoords)
-      , ("when given an irregular image", irregularImage, expectedFilledIrregularImage, expectedIrregularCoords)
+      [ ("emptyImage", V.empty, V.empty, [])
+      , ("smallImage", smallImage, expectedFilledSmallImage, expectedSmallCoords)
+      , ("complexImage", complexImage, expectedFilledComplexImage, expectedComplexCoords)
+      , ("irregularImage", irregularImage, expectedFilledIrregularImage, expectedIrregularCoords)
       ] $ \(name, image, expectedFilledImage, expectedCoords) ->
-        context name $ do
+        context ("when given " ++ name) $ do
           let (filledImage, coords) = fillAll image
           it "fills all blocks in a given image" $ filledImage `shouldBe` expectedFilledImage
           it "returns coordinates of filled blocks" $ fmap S.fromList <$> IM.toAscList coords `shouldBe` expectedCoords
