@@ -58,10 +58,10 @@ parser = toConfig <$> optional (option auto $ long "codel-size" <> metavar "<siz
     f "s" = Right SizeLevelLow
     f "z" = Right SizeLevelHigh
     f _   = Left "accepts only `0', `1', `2', `3', `s' or `z'"
-  toConfig codelSizeOpt additionalColorOpt multicoloredCodelOpt optimizationLevelOpt runTypeOpt inputOpt = config runTypeOpt where
+  toConfig codelSizeIntOpt additionalColorOpt multicoloredCodelOpt optimizationLevelOpt runTypeOpt inputOpt = config runTypeOpt where
     config (OutputBinary path) = OutputBinaryConfig inputOpt path imageConfigOpt (fromMaybe OptimizationLevelMiddle optimizationLevelOpt)
     config RunJIT = RunJITConfig inputOpt imageConfigOpt (fromMaybe OptimizationLevelMiddle optimizationLevelOpt)
     config OutputGraph = OutputGraphConfig inputOpt imageConfigOpt
-    imageConfigOpt = ImageConfig (fromMaybe (additionalColor defaultImageConfig) additionalColorOpt)
-                                 (fromMaybe (multicoloredCodel defaultImageConfig) multicoloredCodelOpt)
-                                 (fromMaybe (codelSize defaultImageConfig) codelSizeOpt)
+    imageConfigOpt = ImageConfig (fromMaybe AdditionalColorNearest additionalColorOpt)
+                                 (fromMaybe MulticoloredCodelAverage multicoloredCodelOpt)
+                                 (maybe GuessCodelSize CodelSize codelSizeIntOpt)

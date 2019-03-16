@@ -10,7 +10,7 @@ module Language.Piet
   , AdditionalColorStrategy(..)
   , MulticoloredCodelStrategy(..)
   , ImageConfig(..)
-  , defaultImageConfig
+  , CodelSize(..)
 
   , ObjectGeneratorError(..)
 

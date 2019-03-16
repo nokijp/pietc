@@ -21,37 +21,37 @@ spec = do
     forM_
       [ ( ImageConfig { additionalColor = AdditionalColorAsBlack
                       , multicoloredCodel = MulticoloredCodelAsWhite
-                      , codelSize = 5
+                      , codelSize = CodelSize 5
                       }
         , blackWhiteCodels
         )
       , ( ImageConfig { additionalColor = AdditionalColorAsWhite
                       , multicoloredCodel = MulticoloredCodelAsBlack
-                      , codelSize = 5
+                      , codelSize = CodelSize 5
                       }
         , whiteBlackCodels
         )
       , ( ImageConfig { additionalColor = AdditionalColorAsWhite
                       , multicoloredCodel = MulticoloredCodelCenter
-                      , codelSize = 5
+                      , codelSize = CodelSize 5
                       }
         , whiteCenterCodels
         )
       , ( ImageConfig { additionalColor = AdditionalColorAsWhite
                       , multicoloredCodel = MulticoloredCodelModal
-                      , codelSize = 5
+                      , codelSize = CodelSize 5
                       }
         , whiteModalCodels
         )
       , ( ImageConfig { additionalColor = AdditionalColorAsWhite
                       , multicoloredCodel = MulticoloredCodelAverage
-                      , codelSize = 5
+                      , codelSize = CodelSize 5
                       }
         , whiteAverageCodels
         )
       , ( ImageConfig { additionalColor = AdditionalColorNearest
                       , multicoloredCodel = MulticoloredCodelAsWhite
-                      , codelSize = 5
+                      , codelSize = CodelSize 5
                       }
         , nearestWhiteCodels
         )
@@ -60,8 +60,19 @@ spec = do
           Right codels <- runIO $ runExceptT $ readCodels config "test/resources/imagereader-test.png"
           it "returns codels" $ codels `shouldBe` expectedCodels
 
+    context "when given GuessCodelSize" $ do
+      let config = ImageConfig { additionalColor = AdditionalColorNearest
+                               , multicoloredCodel = MulticoloredCodelAverage
+                               , codelSize = GuessCodelSize
+                               }
+      Right codels <- runIO $ runExceptT $ readCodels config "test/resources/codel10-test.png"
+      it "returns codels" $ codels `shouldBe` complexCodels
+
     context "when given an invalid codel size" $ do
-      let config = defaultImageConfig { codelSize = 4 }
+      let config = ImageConfig { additionalColor = AdditionalColorNearest
+                               , multicoloredCodel = MulticoloredCodelAverage
+                               , codelSize = CodelSize 4
+                               }
       Left err <- runIO $ runExceptT $ readCodels config "test/resources/imagereader-test.png"
       it "fails with CodelSizeError" $ err `shouldBe` CodelSizeError
 
@@ -129,4 +140,144 @@ nearestWhiteCodels = toVector2D
   , [AchromaticCodel Red Normal, AchromaticCodel Red Dark, AchromaticCodel Green Dark, BlackCodel, WhiteCodel, AchromaticCodel Blue Light]
   , [AchromaticCodel Yellow Normal, AchromaticCodel Cyan Normal, AchromaticCodel Magenta Normal, AchromaticCodel Magenta Normal, AchromaticCodel Yellow Normal, AchromaticCodel Cyan Normal]
   , [WhiteCodel, WhiteCodel, WhiteCodel, WhiteCodel, WhiteCodel, WhiteCodel]
+  ]
+
+complexCodels :: Vector (Vector Codel)
+complexCodels = toVector2D
+  [ [ AchromaticCodel Blue Dark
+    , AchromaticCodel Blue Dark
+    , AchromaticCodel Blue Dark
+    , AchromaticCodel Blue Dark
+    , AchromaticCodel Blue Dark
+    , AchromaticCodel Blue Normal
+    , AchromaticCodel Red Light
+    , AchromaticCodel Red Light
+    , AchromaticCodel Red Light
+    , WhiteCodel
+    , AchromaticCodel Red Light
+    , AchromaticCodel Red Light
+    , AchromaticCodel Red Light
+    , AchromaticCodel Magenta Dark
+    , AchromaticCodel Magenta Dark
+    , AchromaticCodel Magenta Dark
+    ]
+  , [ AchromaticCodel Blue Light
+    , AchromaticCodel Blue Light
+    , AchromaticCodel Blue Light
+    , AchromaticCodel Blue Normal
+    , AchromaticCodel Blue Normal
+    , AchromaticCodel Blue Normal
+    , AchromaticCodel Blue Normal
+    , AchromaticCodel Blue Normal
+    , WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , AchromaticCodel Yellow Normal
+    , AchromaticCodel Yellow Normal
+    , AchromaticCodel Yellow Normal
+    , BlackCodel
+    ]
+  , [ AchromaticCodel Blue Light
+    , AchromaticCodel Blue Light
+    , AchromaticCodel Blue Light
+    , AchromaticCodel Blue Light
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Blue Normal
+    , AchromaticCodel Blue Normal
+    , AchromaticCodel Red Normal
+    , WhiteCodel
+    , WhiteCodel
+    , AchromaticCodel Yellow Normal
+    , AchromaticCodel Yellow Normal
+    , AchromaticCodel Yellow Normal
+    , BlackCodel
+    , BlackCodel
+    , AchromaticCodel Magenta Light
+    ]
+  , [ AchromaticCodel Cyan Light
+    , AchromaticCodel Cyan Light
+    , AchromaticCodel Cyan Light
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Red Normal
+    , BlackCodel
+    , BlackCodel
+    , BlackCodel
+    , BlackCodel
+    , BlackCodel
+    , AchromaticCodel Magenta Light
+    , AchromaticCodel Magenta Light
+    ]
+  , [ WhiteCodel
+    , WhiteCodel
+    , AchromaticCodel Cyan Light
+    , AchromaticCodel Cyan Light
+    , AchromaticCodel Cyan Light
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Red Normal
+    , BlackCodel
+    , AchromaticCodel Magenta Light
+    , AchromaticCodel Magenta Light
+    , BlackCodel
+    ]
+  , [ WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , AchromaticCodel Cyan Light
+    , AchromaticCodel Cyan Light
+    , AchromaticCodel Cyan Light
+    , AchromaticCodel Cyan Light
+    , AchromaticCodel Cyan Light
+    , AchromaticCodel Red Normal
+    , AchromaticCodel Green Light
+    , BlackCodel
+    , BlackCodel
+    , AchromaticCodel Magenta Light
+    , AchromaticCodel Magenta Light
+    , AchromaticCodel Magenta Light
+    , BlackCodel
+    ]
+  , [ WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , AchromaticCodel Red Dark
+    , AchromaticCodel Red Light
+    , AchromaticCodel Red Light
+    , AchromaticCodel Red Light
+    , BlackCodel
+    , AchromaticCodel Green Dark
+    , AchromaticCodel Green Dark
+    , AchromaticCodel Red Light
+    ]
+  , [ WhiteCodel
+    , AchromaticCodel Yellow Light
+    , WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , AchromaticCodel Cyan Dark
+    , AchromaticCodel Cyan Dark
+    , WhiteCodel
+    , AchromaticCodel Green Light
+    , AchromaticCodel Green Light
+    , AchromaticCodel Green Light
+    , WhiteCodel
+    , WhiteCodel
+    , WhiteCodel
+    , BlackCodel
+    ]
   ]

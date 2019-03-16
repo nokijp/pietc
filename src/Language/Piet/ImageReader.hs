@@ -6,7 +6,7 @@ module Language.Piet.ImageReader
   , AdditionalColorStrategy(..)
   , MulticoloredCodelStrategy(..)
   , ImageConfig(..)
-  , defaultImageConfig
+  , CodelSize(..)
   , readCodels
   , imageToCodels
   , rgbImageToCodels
@@ -23,6 +23,7 @@ import Data.Vector (Vector)
 import qualified Data.Vector as V
 import GHC.Exts
 import Language.Piet.Codel
+import Language.Piet.Internal.CodelSize
 import Language.Piet.Internal.ToRGB8
 
 data ImageReaderError = ReadImageFileError String  -- ^ The image file is unreadable.
@@ -44,16 +45,14 @@ data MulticoloredCodelStrategy = MulticoloredCodelAsWhite  -- ^ Treating as a wh
                                | MulticoloredCodelAverage  -- ^ Calculating an average color.
                                  deriving (Show, Eq, Ord)
 
+data CodelSize = CodelSize Int
+               | GuessCodelSize
+                 deriving (Show, Eq)
+
 data ImageConfig = ImageConfig { additionalColor :: AdditionalColorStrategy
                                , multicoloredCodel :: MulticoloredCodelStrategy
-                               , codelSize :: Int
+                               , codelSize :: CodelSize
                                } deriving (Show, Eq)
-
-defaultImageConfig :: ImageConfig
-defaultImageConfig = ImageConfig { additionalColor = AdditionalColorNearest
-                                 , multicoloredCodel = MulticoloredCodelAverage
-                                 , codelSize = 1
-                                 }
 
 -- | Read an image and then convert to codels.
 readCodels :: (MonadIO m, MonadError ImageReaderError m) => ImageConfig -> FilePath -> m (Vector (Vector Codel))
@@ -74,36 +73,40 @@ rgbImageToCodels config image = do
   let
     pixelWidth = imageWidth image
     pixelHeight = imageHeight image
-    codelSize' = codelSize config
+    codelSizeInt = getIntCodelSize (pixelWidth, pixelHeight) image (codelSize config)
     additionalColor' = additionalColor config
     multicoloredCodel' = multicoloredCodel config
-    (codelWidth, modX) = divMod pixelWidth codelSize'
-    (codelHeight, modY) = divMod pixelHeight codelSize'
+    (codelWidth, modX) = divMod pixelWidth codelSizeInt
+    (codelHeight, modY) = divMod pixelHeight codelSizeInt
   when (modX /= 0 || modY /= 0) $ throwError CodelSizeError
   return $ V.generate codelHeight $ \codelY ->
     V.generate codelWidth $ \codelX ->
-      colorToCodel additionalColor' $ getCodelColor multicoloredCodel' codelSize' image codelX codelY
+      colorToCodel additionalColor' $ getCodelColor multicoloredCodel' codelSizeInt image codelX codelY
+
+getIntCodelSize :: (Int, Int) -> Image PixelRGB8 -> CodelSize -> Int
+getIntCodelSize _ _ (CodelSize n) = n
+getIntCodelSize size image GuessCodelSize = guessCodelSize size (\(x, y) -> pixelAt image x y)
 
 getCodelColor :: MulticoloredCodelStrategy -> Int -> Image PixelRGB8 -> Int -> Int -> PixelRGB8
-getCodelColor strategy codelSize' image codelX codelY = getCodelColor' strategy where
+getCodelColor strategy codelSizeInt image codelX codelY = getCodelColor' strategy where
   getCodelColor' MulticoloredCodelAsWhite = if hasMultipleColors then PixelRGB8 0xFF 0xFF 0xFF else firstColor
   getCodelColor' MulticoloredCodelAsBlack = if hasMultipleColors then PixelRGB8 0x00 0x00 0x00 else firstColor
-  getCodelColor' MulticoloredCodelCenter = pixelAt image (pixelOffsetX + codelSize' `div` 2) (pixelOffsetY + codelSize' `div` 2)
+  getCodelColor' MulticoloredCodelCenter = pixelAt image (pixelOffsetX + codelSizeInt `div` 2) (pixelOffsetY + codelSizeInt `div` 2)
   getCodelColor' MulticoloredCodelModal = head $ maximumBy (comparing length) $ groupWith id colors
   getCodelColor' MulticoloredCodelAverage = average where
     average = PixelRGB8 (toP $ iR `div` codelsNum) (toP $ iG `div` codelsNum) (toP $ iB `div` codelsNum)
     (iR, iG, iB) = foldl' (\(accR, accG, accB) (PixelRGB8 r g b) -> (accR + toI r, accG + toI g, accB + toI b)) (0, 0, 0) colors
     toI = toInteger . fromEnum
     toP = toEnum . fromInteger
-    codelsNum = toInteger $ codelSize' * codelSize'
+    codelsNum = toInteger $ codelSizeInt * codelSizeInt
   hasMultipleColors = any (/= firstColor) colors
   firstColor = head colors
   colors = do
-    pixelY <- (+ pixelOffsetY) <$> [0 .. (codelSize' - 1)]
-    pixelX <- (+ pixelOffsetX) <$> [0 .. (codelSize' - 1)]
+    pixelY <- (+ pixelOffsetY) <$> [0 .. codelSizeInt - 1]
+    pixelX <- (+ pixelOffsetX) <$> [0 .. codelSizeInt - 1]
     return $ pixelAt image pixelX pixelY
-  pixelOffsetX = codelX * codelSize'
-  pixelOffsetY = codelY * codelSize'
+  pixelOffsetX = codelX * codelSizeInt
+  pixelOffsetY = codelY * codelSizeInt
 
 colorToCodel :: AdditionalColorStrategy -> PixelRGB8 -> Codel
 colorToCodel AdditionalColorAsWhite color = M.findWithDefault WhiteCodel color colorCodelTable
