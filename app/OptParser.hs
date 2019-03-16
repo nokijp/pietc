@@ -29,10 +29,10 @@ parserInfo :: ParserInfo ProgramConfig
 parserInfo = info (parser <**> helper) fullDesc
 
 parser :: Parser ProgramConfig
-parser = toConfig <$> optional (option auto $ long "codel-size" <> metavar "<size>" <> help "Set size of codel")
-                  <*> optional (option additionalColorOptReader $ long "additional" <> metavar "<type>" <> help "Set method to deal with additional colors")
-                  <*> optional (option multicoloredCodelOptReader $ long "multicolor" <> metavar "<type>" <> help "Set method to deal with multicolored codels")
-                  <*> optional (option optimizationLevelOptReader $ short 'O' <> metavar "<level>" <> help "Set optimization level")
+parser = toConfig <$> optional (option auto $ long "codel-size" <> metavar "<size>" <> help "Set size of codel (default: guess)")
+                  <*> optional (option additionalColorOptReader $ long "additional" <> metavar "<type>" <> help "Set method to deal with additional colors (default: nearest)")
+                  <*> optional (option multicoloredCodelOptReader $ long "multicolor" <> metavar "<type>" <> help "Set method to deal with multicolored codels (default: average)")
+                  <*> optional (option optimizationLevelOptReader $ short 'O' <> metavar "<level>" <> help "Set optimization level (default: 2)")
                   <*> (   OutputBinary <$> strOption (short 'o' <> metavar "<file>" <> help "Write output to <file>")
                       <|> flag' RunJIT (long "run" <> help "Run program without generating binaries")
                       <|> flag' OutputGraph (long "graph" <> help "Print syntax graph in DOT format")
