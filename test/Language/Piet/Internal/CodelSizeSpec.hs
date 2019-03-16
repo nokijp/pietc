@@ -7,6 +7,7 @@ module Language.Piet.Internal.CodelSizeSpec
 
 import Control.Monad
 import Data.Vector (Vector)
+import Data.Maybe
 import qualified Data.Vector as V
 import Language.Piet.Internal.CodelSize
 import Test.Hspec
@@ -28,7 +29,11 @@ spec = do
       , ("size1Image", size1Image, 1)
       ] $ \(name, image, codelSize) ->
         context ("when given " ++ name) $ do
-          it "return the codel size of an image" $ guessCodelSize image `shouldBe` codelSize
+          let
+            imageF (x, y) = image V.! y V.! x
+            width = fromMaybe 0 $ V.length <$> image V.!? 0
+            height = V.length image
+          it "return the codel size of an image" $ guessCodelSize (width, height) imageF `shouldBe` codelSize
 
 smallestImage :: Vector (Vector Char)
 smallestImage = toVector2D [['a']]
