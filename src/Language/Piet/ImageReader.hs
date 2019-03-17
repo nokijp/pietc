@@ -85,7 +85,7 @@ rgbImageToCodels config image = do
 
 getIntCodelSize :: (Int, Int) -> Image PixelRGB8 -> CodelSize -> Int
 getIntCodelSize _ _ (CodelSize n) = n
-getIntCodelSize size image GuessCodelSize = guessCodelSize size (\(x, y) -> pixelAt image x y)
+getIntCodelSize size image GuessCodelSize = guessCodelSize size $ uncurry (pixelAt image)
 
 getCodelColor :: MulticoloredCodelStrategy -> Int -> Image PixelRGB8 -> Int -> Int -> PixelRGB8
 getCodelColor strategy codelSizeInt image codelX codelY = getCodelColor' strategy where
