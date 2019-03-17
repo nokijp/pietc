@@ -104,7 +104,7 @@ The same options as in `--codel-size` are available.
 ### Visualizing a Piet program syntax
 
 ```bash
-pietc --run program.png
+pietc --graph program.png
 ```
 
 This generates a DOT script.
