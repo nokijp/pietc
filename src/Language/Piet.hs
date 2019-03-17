@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Language.Piet
   ( PietError(..)
   , compile
@@ -34,26 +36,60 @@ data PietError = PietImageReaderError ImageReaderError
                | PietObjectGeneratorError ObjectGeneratorError
                  deriving (Show, Eq)
 
-compile :: ImageConfig -> OptimizationLevel -> FilePath -> FilePath -> ExceptT PietError IO ()
+-- | Compile a Piet program.
+compile :: ( MonadIO m
+           , MonadError PietError m
+           )
+        => ImageConfig
+        -> OptimizationLevel
+        -> FilePath
+        -> FilePath
+        -> m ()
 compile imageConfig optimizationLevel inputPath outputPath = do
   ast <- makeAST imageConfig inputPath
-  withExceptT PietObjectGeneratorError $ generateExecutable optimizationLevel outputPath ast
+  mapError PietObjectGeneratorError $ generateExecutable optimizationLevel outputPath ast
 
-run :: ImageConfig -> OptimizationLevel -> FilePath -> ExceptT PietError IO ()
+-- | Run a Piet program on JIT.
+run :: ( MonadIO m
+       , MonadError PietError m
+       )
+    => ImageConfig
+    -> OptimizationLevel
+    -> FilePath
+    -> m ()
 run imageConfig optimizationLevel inputPath = do
   ast <- makeAST imageConfig inputPath
-  lift $ runJIT optimizationLevel ast
+  liftIO $ runJIT optimizationLevel ast
 
-graphText :: ImageConfig -> FilePath -> ExceptT PietError IO Text
+-- | Convert a Piet program to a graph script.
+graphText :: ( MonadIO m
+             , MonadError PietError m
+             )
+          => ImageConfig
+          -> FilePath
+          -> m Text
 graphText imageConfig inputPath =
   syntaxToDOT <$> makeGraph imageConfig inputPath
 
-makeAST :: ImageConfig -> FilePath -> ExceptT PietError IO AST.Module
+makeAST :: ( MonadIO m
+           , MonadError PietError m
+           )
+        => ImageConfig
+        -> FilePath
+        -> m AST.Module
 makeAST imageConfig inputPath = do
   graph <- makeGraph imageConfig inputPath
   return $ generateAssembly graph
 
-makeGraph :: ImageConfig -> FilePath -> ExceptT PietError IO SyntaxGraph
+makeGraph :: ( MonadIO m
+             , MonadError PietError m
+             )
+          => ImageConfig
+          -> FilePath
+          -> m SyntaxGraph
 makeGraph imageConfig inputPath = do
-  codels <- withExceptT PietImageReaderError $ readCodels imageConfig inputPath
-  withExceptT PietParserError $ parse codels
+  codels <- mapError PietImageReaderError $ readCodels imageConfig inputPath
+  mapError PietParserError $ parse codels
+
+mapError :: MonadError e2 m => (e1 -> e2) -> ExceptT e1 m a -> m a
+mapError f = either (throwError . f) return <=< runExceptT
