@@ -1,6 +1,15 @@
 name:                pietc
 version:             0.1.0.0
 
+ghc-options:
+- -Wall
+- -Werror
+- -Widentities
+- -Wmissing-export-lists
+- -Wmissing-exported-signatures
+- -Wpartial-fields
+- -Wredundant-constraints
+
 dependencies:
 - base >= 4.7 && < 5
 - bytestring
@@ -21,12 +30,6 @@ dependencies:
 
 library:
   source-dirs: src
-  ghc-options:
-  - -Wall
-  - -Werror
-  - -Widentities
-  - -Wpartial-fields
-  - -Wredundant-constraints
 
 executables:
   pietc:
@@ -36,11 +39,6 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    - -Wall
-    - -Werror
-    - -Widentities
-    - -Wpartial-fields
-    - -Wredundant-constraints
     dependencies:
     - pietc
     - optparse-applicative
@@ -51,12 +49,6 @@ tests:
     source-dirs:         test
     c-sources:
     - test/llvmtestutils.c
-    ghc-options:
-    - -Wall
-    - -Werror
-    - -Widentities
-    - -Wpartial-fields
-    - -Wredundant-constraints
     dependencies:
     - pietc
     - hspec

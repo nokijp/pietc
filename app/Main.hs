@@ -1,4 +1,6 @@
-module Main where
+module Main
+  ( main
+  ) where
 
 import Control.Monad
 import Control.Monad.Except
@@ -21,7 +23,7 @@ runProgram (OutputGraphConfig inputFile' imageConfig') =
   toIO $ printGraphText imageConfig' inputFile'
 
 toIO :: ExceptT PietError IO () -> IO ()
-toIO = either (putStrLn . errorToMessage) return <=< runExceptT
+toIO = either printError return <=< runExceptT
 
 printGraphText :: ImageConfig -> FilePath -> ExceptT PietError IO ()
 printGraphText imageConfig' inputPath' =

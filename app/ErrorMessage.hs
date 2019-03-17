@@ -1,8 +1,12 @@
 module ErrorMessage
-  ( errorToMessage
+  ( printError
   ) where
 
 import Language.Piet
+import System.IO
+
+printError :: PietError -> IO ()
+printError = hPutStrLn stderr . errorToMessage
 
 errorToMessage :: PietError -> String
 errorToMessage (PietImageReaderError (ReadImageFileError s)) = "error: " ++ s
