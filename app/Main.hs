@@ -16,9 +16,9 @@ main = do
 
 runProgram :: ProgramConfig -> IO ()
 runProgram (OutputBinaryConfig inputFile' outputFile' imageConfig' optimizationLevel') =
-  toIO $ compile imageConfig' optimizationLevel' inputFile' outputFile'
+  toIO $ compile nullReceiver imageConfig' optimizationLevel' inputFile' outputFile'
 runProgram (RunJITConfig inputFile' imageConfig' optimizationLevel') =
-  toIO $ run imageConfig' optimizationLevel' inputFile'
+  toIO $ run nullReceiver imageConfig' optimizationLevel' inputFile'
 runProgram (OutputGraphConfig inputFile' imageConfig') =
   toIO $ printGraphText imageConfig' inputFile'
 
@@ -27,4 +27,4 @@ toIO = either printError return <=< runExceptT
 
 printGraphText :: ImageConfig -> FilePath -> ExceptT PietError IO ()
 printGraphText imageConfig' inputPath' =
-  lift . T.putStrLn =<< graphText imageConfig' inputPath'
+  lift . T.putStrLn =<< graphText nullReceiver imageConfig' inputPath'
