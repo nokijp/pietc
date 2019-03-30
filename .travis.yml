@@ -8,6 +8,11 @@ cache:
     - ~/.stack
     - ~/.local
 
+env:
+  global:
+    - ENCRYPTION_LABEL: ff912a9e83cd
+    - DEPLOY_USER_EMAIL: travisci@example.com
+
 addons:
   apt:
     packages:
