@@ -16,7 +16,6 @@ env:
 addons:
   apt:
     packages:
-      - binutils
       - llvm-6.0-dev
 
 before_install:
