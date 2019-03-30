@@ -1,5 +1,7 @@
 # pietc
 
+[![Build Status](https://travis-ci.org/nokijp/pietc.svg?branch=master)](https://travis-ci.org/nokijp/pietc)
+
 pietc is a Piet compiler.
 This compiles Piet programs to native executable programs.
 
