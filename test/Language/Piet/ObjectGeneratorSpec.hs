@@ -27,7 +27,6 @@ spec = do
     context "when given a simple AST" $ do
       output <- runIO $ withTempFile "pietc-executable" $ \executablePath -> do
         Right () <- runExceptT $ generateExecutable NoOptimization executablePath simpleAST
-        callCommand "ls -lh /tmp/"
         readProcess executablePath [] ""
       it "generates an executable" $ output `shouldBe` "hello"
 
