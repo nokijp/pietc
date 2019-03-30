@@ -1,0 +1,34 @@
+language: c
+
+dist: xenial
+sudo: false
+
+cache:
+  directories:
+    - ~/.stack
+    - ~/.local
+
+addons:
+  apt:
+    packages:
+      - llvm-6.0
+
+before_install:
+  - mkdir -p ~/.local/bin
+  - export PATH=~/.local/bin:$PATH
+  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar -xzO --wildcards '*/stack' > ~/.local/bin/stack
+  - chmod a+x ~/.local/bin/stack
+
+install:
+  - stack setup --no-terminal
+
+script:
+  - stack test --no-terminal --skip-ghc-check
+  - stack haddock --no-haddock-deps --no-terminal --skip-ghc-check
+
+deploy:
+  provider: script
+  script: curl -sSL https://raw.githubusercontent.com/nokijp/travis-stack-ghpages/master/deploy-haddock.sh | bash
+  skip_cleanup: true
+  on:
+    branch: master
