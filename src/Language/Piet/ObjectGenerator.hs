@@ -23,7 +23,7 @@ import System.Exit
 import System.IO
 import System.Process
 
-data ObjectGeneratorError = CompileError String  -- ^ Faild to compile.
+data ObjectGeneratorError = CompileError String  -- ^ Failed to compile.
                           | LinkError String  -- ^ Failed to link object.
                           | TempFileError String  -- ^ Failed to create a temporary file.
                             deriving (Show, Eq)
@@ -50,7 +50,7 @@ link outPath objectString = toM $ catchTempFileError $ try linkIO where
   catchTempFileError = fmap (join . left (TempFileError . show))
   linkIO :: IO (Either ObjectGeneratorError ())
   linkIO = withObjectFile objectString $ \path -> do
-    (exitCode, _, stdErrString) <- readProcessWithExitCode "/usr/bin/ld" ["-lc", "-o", outPath, path] ""
+    (exitCode, _, stdErrString) <- readProcessWithExitCode "cc" ["-o", outPath, path] ""
     return $ if exitCode == ExitSuccess then Right () else Left $ LinkError stdErrString
 
 withObjectFile :: ByteString -> (FilePath -> IO a) -> IO a

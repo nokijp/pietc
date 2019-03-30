@@ -12,14 +12,12 @@ This program requires the following libraries and programs:
 
 - [Stack](https://www.haskellstack.org/), a build tool for Haskell (required for building)
 - [LLVM 6](https://llvm.org/)
-- ld (now only support `/usr/bin/ld`)
 
 Make sure that the following commands run successfully:
 
 ```bash
 stack --version
 llvm-config --libs --link-shared
-/usr/bin/ld -v
 ```
 
 On macOS, it may be required to run the following command in `llvm-config --libdir`:
