@@ -22,9 +22,9 @@ import LLVM.Target
 import TestUtils
 
 foreign import ccall "replace_stdin" replaceStdin :: CString -> IO (Ptr CFile)
-foreign import ccall "replace_stdout" replaceStdout :: CString -> IO (Ptr CFile)
+foreign import ccall "replace_stdout" replaceStdout :: CString -> IO CInt
 foreign import ccall "restore_stdin" restoreStdin :: Ptr CFile -> IO ()
-foreign import ccall "restore_stdout" restoreStdout :: Ptr CFile -> IO ()
+foreign import ccall "restore_stdout" restoreStdout :: CInt -> IO ()
 
 foreign import ccall "dynamic" mkIntFunction :: FunPtr (Int -> IO Int) -> Int -> IO Int
 
