@@ -1,6 +1,7 @@
 # pietc
 
 [![Build Status](https://travis-ci.org/nokijp/pietc.svg?branch=master)](https://travis-ci.org/nokijp/pietc)
+[![Haddock](https://img.shields.io/badge/docs-Haddock-informational.svg)](https://nokijp.github.io/pietc/)
 
 pietc is a Piet compiler.
 This compiles Piet programs to native executable programs.
