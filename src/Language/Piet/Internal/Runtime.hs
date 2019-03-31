@@ -36,7 +36,7 @@ import LLVM.IRBuilder hiding (switch, add)
 import Prelude hiding (not, mod, subtract)
 
 runtimeAssembly :: ByteString
-runtimeAssembly = $(embedFile "src/Language/Piet/stack.ll")
+runtimeAssembly = $(embedFile "src/Language/Piet/Internal/runtime.ll")
 
 declareFunctions :: MonadModuleBuilder m => m ()
 declareFunctions = do

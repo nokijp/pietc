@@ -34,7 +34,7 @@ runAndCapture ast symbol = capture $ runModule mkIntFunction ast symbol
 capture :: (Int -> IO Int) -> (Int, ByteString) -> IO (Int, ByteString)
 capture f (arg, input) = do
   withTempFile "pietc-llvm-input" $ \inputFilePath ->
-    withTempFile "pietc-llvm-input" $ \outputFilePath -> do
+    withTempFile "pietc-llvm-output" $ \outputFilePath -> do
       BS.writeFile inputFilePath input
       res <- withCString inputFilePath $ \inputFilePathCStr ->
         withCString outputFilePath $ \outputFilePathCStr ->
