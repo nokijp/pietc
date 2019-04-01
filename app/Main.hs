@@ -4,23 +4,29 @@ module Main
 
 import Control.Monad
 import Control.Monad.Except
+import Data.Version
 import qualified Data.Text.Lazy.IO as T
 import ErrorMessage
 import Language.Piet
 import OptParser
+import Paths_pietc
 import VerboseMessage
 
 main :: IO ()
 main = do
-  config <- parseArgs
-  runProgram config
+  mode <- parseArgs
+  runProgram mode
 
-runProgram :: ProgramConfig -> IO ()
-runProgram (OutputBinaryConfig inputFile outputFile imageConfig optimizationLevel isVerbose) =
+runProgram :: ProgramMode -> IO ()
+runProgram ShowVersionInfo = putStrLn $ "pietc " ++ showVersion version
+runProgram (RunCompiler config) = runCompiler config
+
+runCompiler :: CompilerConfig -> IO ()
+runCompiler (OutputBinaryConfig inputFile outputFile imageConfig optimizationLevel isVerbose) =
   toIO $ compile (receiver isVerbose) imageConfig optimizationLevel inputFile outputFile
-runProgram (RunJITConfig inputFile imageConfig optimizationLevel isVerbose) =
+runCompiler (RunJITConfig inputFile imageConfig optimizationLevel isVerbose) =
   toIO $ run (receiver isVerbose) imageConfig optimizationLevel inputFile
-runProgram (OutputGraphConfig inputFile imageConfig isVerbose) =
+runCompiler (OutputGraphConfig inputFile imageConfig isVerbose) =
   toIO $ printGraphText isVerbose imageConfig inputFile
 
 toIO :: ExceptT PietError IO () -> IO ()
