@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/nokijp/pietc.svg?branch=master)](https://travis-ci.org/nokijp/pietc)
 [![Haddock](https://img.shields.io/badge/docs-Haddock-informational.svg)](https://nokijp.github.io/pietc/)
 
-pietc is a Piet compiler.
+pietc is a [Piet](http://www.dangermouse.net/esoteric/piet.html) compiler.
 This compiles Piet programs to native executable programs.
 
 
